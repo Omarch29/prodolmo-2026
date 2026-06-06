@@ -36,33 +36,53 @@ export type Database = {
     Tables: {
       bracket_slots: {
         Row: {
+          away_team_id: string | null
           feeds_side: string | null
           feeds_slot: string | null
+          home_team_id: string | null
           slot: string
           sort_order: number
           stage_id: string
         }
         Insert: {
+          away_team_id?: string | null
           feeds_side?: string | null
           feeds_slot?: string | null
+          home_team_id?: string | null
           slot: string
           sort_order: number
           stage_id: string
         }
         Update: {
+          away_team_id?: string | null
           feeds_side?: string | null
           feeds_slot?: string | null
+          home_team_id?: string | null
           slot?: string
           sort_order?: number
           stage_id?: string
         }
         Relationships: [
           {
+            foreignKeyName: "bracket_slots_away_team_id_fkey"
+            columns: ["away_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bracket_slots_feeds_slot_fkey"
             columns: ["feeds_slot"]
             isOneToOne: false
             referencedRelation: "bracket_slots"
             referencedColumns: ["slot"]
+          },
+          {
+            foreignKeyName: "bracket_slots_home_team_id_fkey"
+            columns: ["home_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "bracket_slots_stage_id_fkey"

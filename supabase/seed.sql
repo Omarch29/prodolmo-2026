@@ -78,3 +78,25 @@ values
    (select id from public.teams where code = 'GER'),
    (select id from public.teams where code = 'POR'),
    now() + interval '3 days', 'AT&T Stadium', 'scheduled', null, null);
+
+-- ============================================================
+-- Bracket de eliminación para el SIMULADOR (demo: desde Cuartos).
+-- Estructura data-driven: feeds_slot/feeds_side propagan al ganador.
+-- Orden de inserción según la FK self-referente: FINAL -> SF -> QF.
+-- ============================================================
+insert into public.bracket_slots (slot, stage_id, sort_order, feeds_slot, feeds_side, home_team_id, away_team_id) values
+  ('FINAL', (select id from public.stages where sort_order = 6), 100, null, null, null, null);
+
+insert into public.bracket_slots (slot, stage_id, sort_order, feeds_slot, feeds_side, home_team_id, away_team_id) values
+  ('SF-1', (select id from public.stages where sort_order = 5), 90, 'FINAL', 'home', null, null),
+  ('SF-2', (select id from public.stages where sort_order = 5), 91, 'FINAL', 'away', null, null);
+
+insert into public.bracket_slots (slot, stage_id, sort_order, feeds_slot, feeds_side, home_team_id, away_team_id) values
+  ('QF-1', (select id from public.stages where sort_order = 4), 80, 'SF-1', 'home',
+   (select id from public.teams where code = 'ARG'), (select id from public.teams where code = 'FRA')),
+  ('QF-2', (select id from public.stages where sort_order = 4), 81, 'SF-1', 'away',
+   (select id from public.teams where code = 'BRA'), (select id from public.teams where code = 'ESP')),
+  ('QF-3', (select id from public.stages where sort_order = 4), 82, 'SF-2', 'home',
+   (select id from public.teams where code = 'ENG'), (select id from public.teams where code = 'POR')),
+  ('QF-4', (select id from public.stages where sort_order = 4), 83, 'SF-2', 'away',
+   (select id from public.teams where code = 'GER'), (select id from public.teams where code = 'URU'));
