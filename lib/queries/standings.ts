@@ -1,16 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import { rankStandings, type StandingAggregate, type RankedStanding } from "@/lib/standings/rank";
 
-export type StandingRow = {
-  userId: string;
-  displayName: string;
-  points: number;
-  plenos: number;
-  aciertos: number;
-  rank: number;
-  /** Movimiento de puesto vs el snapshot de ayer (positivo = subió); null si no hay snapshot. */
-  delta: number | null;
-};
+export type StandingRow = RankedStanding;
 
 const APP_TZ = "America/Argentina/Buenos_Aires";
 
@@ -41,14 +33,15 @@ export async function getStandings(
 
   const posAyer = new Map((ySnaps ?? []).map((s) => [s.user_id, s.posicion]));
 
-  type Agg = { points: number; plenos: number; aciertos: number };
-  const agg = new Map<string, Agg>();
+  // Acumular puntos/plenos/aciertos por usuario.
+  const agg = new Map<string, StandingAggregate>();
   for (const p of profiles ?? []) {
-    agg.set(p.id, { points: 0, plenos: 0, aciertos: 0 });
+    agg.set(p.id, { userId: p.id, displayName: p.display_name, points: 0, plenos: 0, aciertos: 0 });
   }
 
   for (const row of preds ?? []) {
-    const cur = agg.get(row.user_id) ?? { points: 0, plenos: 0, aciertos: 0 };
+    const cur = agg.get(row.user_id);
+    if (!cur) continue; // pronóstico sin perfil (no debería ocurrir)
     const pts = row.points_earned ?? 0;
     cur.points += pts;
     if (pts > 0) cur.aciertos += 1;
@@ -60,34 +53,7 @@ export async function getStandings(
     ) {
       cur.plenos += 1;
     }
-    agg.set(row.user_id, cur);
   }
 
-  const nameById = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
-  const rows = [...agg.entries()].map(([userId, v]) => ({
-    userId,
-    displayName: nameById.get(userId) ?? "?",
-    ...v,
-  }));
-
-  rows.sort(
-    (a, b) =>
-      b.points - a.points ||
-      b.plenos - a.plenos ||
-      a.displayName.localeCompare(b.displayName),
-  );
-
-  // rank con empates (mismo puntos+plenos = misma posición)
-  let rank = 0;
-  let prevKey = "";
-  return rows.map((r, i) => {
-    const key = `${r.points}-${r.plenos}`;
-    if (key !== prevKey) {
-      rank = i + 1;
-      prevKey = key;
-    }
-    const ayer = posAyer.get(r.userId);
-    const delta = ayer != null ? ayer - rank : null;
-    return { ...r, rank, delta };
-  });
+  return rankStandings([...agg.values()], posAyer);
 }

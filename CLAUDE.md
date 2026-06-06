@@ -56,7 +56,14 @@ sistema de puntos, pantallas, reglas).
   marcadores), `font-body` (Space Grotesk, UI). Inyectadas vía `next/font`.
 - Referencia visual: `design/` (mockups + estilos de las pantallas).
 
+## Tests
+- **Vitest** para lógica pura (sin DB ni red), en `test/*.test.ts`.
+- Patrón: extraer la lógica con miga a módulos puros y testearla ahí
+  (ej. `lib/sim/bracket.ts`, `lib/standings/rank.ts`, `lib/config.ts`, schemas Zod).
+  Las queries/acciones con Supabase se verifican aparte (scripts / a mano).
+- Importar `describe/it/expect` desde `"vitest"` (sin globals).
+
 ## Verificación antes de dar algo por hecho
-- `npm run typecheck` y `npm run build` en verde.
+- `npm run typecheck`, `npm run test` y `npm run build` en verde.
 - `npm run lint` sin errores.
 - Probar el flujo real en `npm run dev` cuando aplique.

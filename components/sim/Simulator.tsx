@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { saveSimPick, resetSim } from "@/actions/simulations";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
+import { participantsOf, winnerOf, championOf } from "@/lib/sim/bracket";
 import type { BracketSlot, TeamInfo } from "@/lib/queries/sim";
 
 const ROUND_LABEL: Record<string, string> = {
@@ -28,18 +29,8 @@ export function Simulator({
   const [picks, setPicks] = useState<Record<string, string>>(initialPicks);
   const [, startTransition] = useTransition();
 
-  const participants = (slot: BracketSlot): [string | null, string | null] => {
-    if (slot.homeTeamId || slot.awayTeamId) return [slot.homeTeamId, slot.awayTeamId];
-    const homeFeeder = slots.find((s) => s.feedsSlot === slot.slot && s.feedsSide === "home");
-    const awayFeeder = slots.find((s) => s.feedsSlot === slot.slot && s.feedsSide === "away");
-    return [homeFeeder ? winner(homeFeeder) : null, awayFeeder ? winner(awayFeeder) : null];
-  };
-
-  const winner = (slot: BracketSlot): string | null => {
-    const [h, a] = participants(slot);
-    const p = picks[slot.slot];
-    return p && (p === h || p === a) ? p : null;
-  };
+  const participants = (slot: BracketSlot) => participantsOf(slot, slots, picks);
+  const winner = (slot: BracketSlot) => winnerOf(slot, slots, picks);
 
   const pickTeam = (slot: BracketSlot, teamId: string | null) => {
     if (!teamId) return;
@@ -56,8 +47,7 @@ export function Simulator({
     });
   };
 
-  const finalSlot = slots.find((s) => s.slot === "FINAL");
-  const champId = finalSlot ? winner(finalSlot) : null;
+  const champId = championOf(slots, picks);
   const champ = champId ? teams[champId] : undefined;
 
   // Agrupar slots por etapa, en orden.

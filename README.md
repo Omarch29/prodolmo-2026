@@ -59,10 +59,12 @@ Abrí http://localhost:3000 e ingresá con uno de los emails sembrados
 | `npm run build` / `start` | Build y arranque de producción |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
+| `npm run test` / `test:watch` | Tests unitarios (Vitest) |
 | `npm run db:start` / `db:stop` | Levanta/apaga Supabase local |
 | `npm run db:reset` | Recrea la BD: migraciones + seed |
 | `npm run db:types` | Genera `lib/database.types.ts` desde el esquema |
 | `npm run seed:users` | Crea los usuarios del grupo (service-role) |
+| `npm run job:daily` | Corre el job de mensajes diarios contra la BD local |
 
 ## Base de datos
 
