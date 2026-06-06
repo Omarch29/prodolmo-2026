@@ -1,0 +1,192 @@
+/* ============================================================
+   PRODE — Pixel Art Design System
+   colors_and_type.css
+   Foundations: color tokens + typographic system
+   Aesthetic: 8/16-bit retro football pitch. Chunky, hard-edged.
+   ============================================================ */
+
+/* ---- Fonts (Google Fonts CDN — see README for substitution note) ---- */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;600;700&family=VT323&display=swap');
+
+:root {
+  /* ============================================================
+     COLOR — RAW PALETTE
+     Vibrant but limited. Football pitch identity.
+     ============================================================ */
+
+  /* Pitch green — the base of the brand (grass) */
+  --pitch-green:        #2FA84F;
+  --pitch-green-dark:   #1B7A39;
+  --pitch-green-darker: #0F5526;
+  --pitch-green-light:  #54C96E;
+  --pitch-green-lighter:#7BE294;
+
+  /* Line white — chalk lines / kit white */
+  --line-white:         #F4F7EF;
+  --line-white-dim:     #DCE3D3;
+
+  /* Scoreboard black — pizarra / marcador / ink */
+  --scoreboard-black:   #161B22;
+  --scoreboard-ink:     #0B0E13;
+  --scoreboard-slate:   #2B323D;
+
+  /* Accents — the fun stuff */
+  --card-yellow:        #FFC83D;  /* yellow card */
+  --card-yellow-dark:   #E0A714;
+  --card-red:           #E23B3B;  /* red card */
+  --card-red-dark:      #B5292B;
+  --goal-orange:        #FF7A1A;  /* GOL! */
+  --goal-orange-dark:   #D85F08;
+
+  /* Sky — secondary accent (links, info, info-toast) */
+  --sky-blue:           #2FA1E8;
+  --sky-blue-dark:      #1C7BB8;
+
+  /* Neutrals (pixel greys) */
+  --grey-100:           #EEF1EA;
+  --grey-200:           #D4D9CD;
+  --grey-300:           #AEB5A4;
+  --grey-400:           #7C8475;
+  --grey-500:           #515A4B;
+
+  /* ============================================================
+     SEMANTIC COLOR TOKENS
+     ============================================================ */
+  --bg:                 var(--pitch-green);
+  --bg-field:           var(--pitch-green-dark);
+  --surface:            var(--line-white);
+  --surface-ink:        var(--scoreboard-black);
+  --ink:                var(--scoreboard-ink);   /* primary text on light */
+  --ink-on-dark:        var(--line-white);        /* text on dark */
+  --ink-muted:          var(--grey-500);
+  --border-color:       var(--scoreboard-ink);    /* the hard black border */
+  --shadow-color:       var(--scoreboard-ink);
+
+  --primary:            var(--pitch-green);
+  --primary-hover:      var(--pitch-green-light);
+  --primary-active:     var(--pitch-green-dark);
+
+  --danger:             var(--card-red);
+  --warning:            var(--card-yellow);
+  --success:            var(--pitch-green);
+  --info:               var(--sky-blue);
+  --highlight:          var(--goal-orange);
+
+  /* States */
+  --disabled-bg:        var(--grey-200);
+  --disabled-ink:       var(--grey-400);
+  --disabled-border:    var(--grey-400);
+
+  /* ============================================================
+     BORDERS — chunky, hard, dark. Never rounded soft.
+     ============================================================ */
+  --border-thin:        2px;
+  --border:             3px;
+  --border-thick:       4px;
+  --border-chunky:      6px;
+  --radius:             0px;            /* pixels don't do round */
+  --radius-notch:       0px;
+
+  /* ============================================================
+     SHADOWS — hard pixel offset, NO blur.
+     ============================================================ */
+  --shadow-xs:          2px 2px 0 var(--shadow-color);
+  --shadow-sm:          3px 3px 0 var(--shadow-color);
+  --shadow:             4px 4px 0 var(--shadow-color);
+  --shadow-lg:          6px 6px 0 var(--shadow-color);
+  --shadow-xl:          8px 8px 0 var(--shadow-color);
+  /* pressed = offset collapses (button sinks) */
+  --shadow-pressed:     1px 1px 0 var(--shadow-color);
+
+  /* ============================================================
+     SPACING — 4px pixel grid
+     ============================================================ */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  24px;
+  --space-6:  32px;
+  --space-7:  48px;
+  --space-8:  64px;
+  --space-9:  96px;
+
+  /* ============================================================
+     TYPOGRAPHY
+     Display/scores: pixel font. Body/numbers: readable sans.
+     ============================================================ */
+  --font-display: 'Press Start 2P', 'VT323', monospace;  /* titles, marcadores */
+  --font-mono:    'VT323', 'Press Start 2P', monospace;   /* big readable numerals */
+  --font-body:    'Space Grotesk', system-ui, sans-serif; /* long text, UI */
+
+  /* Type scale — display (Press Start 2P runs LARGE & blocky, keep sizes modest) */
+  --display-xl:   40px;   /* hero scoreboard */
+  --display-lg:   28px;
+  --display-md:   20px;
+  --display-sm:   14px;
+  --display-xs:   10px;   /* tiny labels / hud */
+
+  /* Body scale (Space Grotesk) */
+  --text-xl:      24px;
+  --text-lg:      20px;
+  --text-md:      16px;   /* base body */
+  --text-sm:      14px;
+  --text-xs:      12px;
+
+  --leading-tight:  1.15;
+  --leading-snug:   1.35;
+  --leading-normal: 1.55;
+
+  --tracking-display: 0.5px;
+  --tracking-wide:    1.5px;
+}
+
+/* ============================================================
+   SEMANTIC TYPE CLASSES
+   ============================================================ */
+.ds-display-xl,
+.ds-display-lg,
+.ds-display-md,
+.ds-display-sm,
+.ds-display-xs {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-display);
+}
+.ds-display-xl { font-size: var(--display-xl); }
+.ds-display-lg { font-size: var(--display-lg); }
+.ds-display-md { font-size: var(--display-md); }
+.ds-display-sm { font-size: var(--display-sm); }
+.ds-display-xs { font-size: var(--display-xs); letter-spacing: var(--tracking-wide); }
+
+.ds-score {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ds-body    { font-family: var(--font-body); font-size: var(--text-md); line-height: var(--leading-normal); }
+.ds-body-lg { font-family: var(--font-body); font-size: var(--text-lg); line-height: var(--leading-snug); }
+.ds-body-sm { font-family: var(--font-body); font-size: var(--text-sm); line-height: var(--leading-snug); }
+.ds-label   { font-family: var(--font-display); font-size: var(--display-xs); letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+
+/* ============================================================
+   PIXEL TEXTURES (reusable backgrounds)
+   Subtle grass stripes + goal-net pattern, pure CSS.
+   ============================================================ */
+.ds-grass {
+  background-color: var(--pitch-green);
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(0,0,0,0.06) 0 48px,
+    rgba(255,255,255,0.05) 48px 96px
+  );
+}
+.ds-net {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.10) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(0,0,0,0.10) 2px, transparent 2px);
+  background-size: 12px 12px;
+}

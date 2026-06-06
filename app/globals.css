@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+/* ============================================================
+   PRODE — Pixel Art Design System (Tailwind v4 tokens)
+   Portado de design/tokens.css. Estética: fútbol retro 8/16-bit,
+   bordes gruesos, sombras pixel duras sin blur, sin radios.
+   Las fuentes se inyectan vía next/font (ver app/layout.tsx).
+   ============================================================ */
+@theme {
+  /* ---- Fuentes (variables provistas por next/font) ---- */
+  --font-display: var(--font-press-start), "VT323", monospace;
+  --font-mono: var(--font-vt323), "Press Start 2P", monospace;
+  --font-body: var(--font-space-grotesk), system-ui, sans-serif;
+
+  /* ---- Paleta cruda ---- */
+  --color-pitch-green: #2fa84f;
+  --color-pitch-green-dark: #1b7a39;
+  --color-pitch-green-darker: #0f5526;
+  --color-pitch-green-light: #54c96e;
+  --color-pitch-green-lighter: #7be294;
+
+  --color-line-white: #f4f7ef;
+  --color-line-white-dim: #dce3d3;
+
+  --color-scoreboard-black: #161b22;
+  --color-scoreboard-ink: #0b0e13;
+  --color-scoreboard-slate: #2b323d;
+
+  --color-card-yellow: #ffc83d;
+  --color-card-yellow-dark: #e0a714;
+  --color-card-red: #e23b3b;
+  --color-card-red-dark: #b5292b;
+  --color-goal-orange: #ff7a1a;
+  --color-goal-orange-dark: #d85f08;
+
+  --color-sky-blue: #2fa1e8;
+  --color-sky-blue-dark: #1c7bb8;
+
+  --color-grey-100: #eef1ea;
+  --color-grey-200: #d4d9cd;
+  --color-grey-300: #aeb5a4;
+  --color-grey-400: #7c8475;
+  --color-grey-500: #515a4b;
+
+  /* ---- Tokens semánticos ---- */
+  --color-bg: var(--color-pitch-green);
+  --color-bg-field: var(--color-pitch-green-dark);
+  --color-surface: var(--color-line-white);
+  --color-surface-ink: var(--color-scoreboard-black);
+  --color-ink: var(--color-scoreboard-ink);
+  --color-ink-on-dark: var(--color-line-white);
+  --color-ink-muted: var(--color-grey-500);
+  --color-border: var(--color-scoreboard-ink);
+
+  --color-primary: var(--color-pitch-green);
+  --color-primary-hover: var(--color-pitch-green-light);
+  --color-primary-active: var(--color-pitch-green-dark);
+
+  --color-danger: var(--color-card-red);
+  --color-warning: var(--color-card-yellow);
+  --color-success: var(--color-pitch-green);
+  --color-info: var(--color-sky-blue);
+  --color-highlight: var(--color-goal-orange);
+
+  --color-disabled-bg: var(--color-grey-200);
+  --color-disabled-ink: var(--color-grey-400);
+  --color-disabled-border: var(--color-grey-400);
+
+  /* ---- Radios: el pixel no es redondo ---- */
+  --radius-none: 0px;
+
+  /* ---- Sombras pixel: offset duro, SIN blur ---- */
+  --shadow-pixel-xs: 2px 2px 0 var(--color-scoreboard-ink);
+  --shadow-pixel-sm: 3px 3px 0 var(--color-scoreboard-ink);
+  --shadow-pixel: 4px 4px 0 var(--color-scoreboard-ink);
+  --shadow-pixel-lg: 6px 6px 0 var(--color-scoreboard-ink);
+  --shadow-pixel-xl: 8px 8px 0 var(--color-scoreboard-ink);
+  /* presionado = la sombra colapsa (el botón se hunde) */
+  --shadow-pixel-pressed: 1px 1px 0 var(--color-scoreboard-ink);
+
+  /* ---- Tracking ---- */
+  --tracking-display: 0.5px;
+  --tracking-wide: 1.5px;
+}
+
+/* ============================================================
+   Bordes gruesos como utilidades (los anchos 3px/6px no son
+   defaults de Tailwind). Estilo sólido + color del token.
+   ============================================================ */
+@utility border-pixel {
+  border-width: 3px;
+  border-style: solid;
+  border-color: var(--color-border);
+}
+@utility border-pixel-thick {
+  border-width: 4px;
+  border-style: solid;
+  border-color: var(--color-border);
+}
+@utility border-pixel-chunky {
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--color-border);
+}
+
+/* ============================================================
+   Texturas pixel reutilizables (de tokens.css)
+   ============================================================ */
+@utility ds-grass {
+  background-color: var(--color-pitch-green);
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.06) 0 48px,
+    rgba(255, 255, 255, 0.05) 48px 96px
+  );
+}
+@utility ds-net {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.1) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.1) 2px, transparent 2px);
+  background-size: 12px 12px;
+}
+
+/* ============================================================
+   Capa base
+   ============================================================ */
+@layer base {
+  html {
+    height: 100%;
+  }
+  body {
+    min-height: 100%;
+    background-color: var(--color-scoreboard-black);
+    color: var(--color-ink-on-dark);
+    font-family: var(--font-body);
+    /* feel pixel: sin antialias suave en la tipografía retro */
+    -webkit-font-smoothing: none;
+  }
+}

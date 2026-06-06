@@ -1,0 +1,228 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "ui_kits/prode-app/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Press Start 2P|Space Grotesk|VT323))/i]",
+        "message": "Font not provided by the design system. Available: Press Start 2P, Space Grotesk, VT323."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {},
+    "tokens": [
+      "--bg",
+      "--bg-field",
+      "--border",
+      "--border-chunky",
+      "--border-color",
+      "--border-thick",
+      "--border-thin",
+      "--card-red",
+      "--card-red-dark",
+      "--card-yellow",
+      "--card-yellow-dark",
+      "--danger",
+      "--disabled-bg",
+      "--disabled-border",
+      "--disabled-ink",
+      "--display-lg",
+      "--display-md",
+      "--display-sm",
+      "--display-xl",
+      "--display-xs",
+      "--font-body",
+      "--font-display",
+      "--font-mono",
+      "--goal-orange",
+      "--goal-orange-dark",
+      "--grey-100",
+      "--grey-200",
+      "--grey-300",
+      "--grey-400",
+      "--grey-500",
+      "--highlight",
+      "--info",
+      "--ink",
+      "--ink-muted",
+      "--ink-on-dark",
+      "--leading-normal",
+      "--leading-snug",
+      "--leading-tight",
+      "--line-white",
+      "--line-white-dim",
+      "--pitch-green",
+      "--pitch-green-dark",
+      "--pitch-green-darker",
+      "--pitch-green-light",
+      "--pitch-green-lighter",
+      "--primary",
+      "--primary-active",
+      "--primary-hover",
+      "--radius",
+      "--radius-notch",
+      "--scoreboard-black",
+      "--scoreboard-ink",
+      "--scoreboard-slate",
+      "--shadow",
+      "--shadow-color",
+      "--shadow-lg",
+      "--shadow-pressed",
+      "--shadow-sm",
+      "--shadow-xl",
+      "--shadow-xs",
+      "--sky-blue",
+      "--sky-blue-dark",
+      "--space-1",
+      "--space-2",
+      "--space-3",
+      "--space-4",
+      "--space-5",
+      "--space-6",
+      "--space-7",
+      "--space-8",
+      "--space-9",
+      "--success",
+      "--surface",
+      "--surface-ink",
+      "--text-lg",
+      "--text-md",
+      "--text-sm",
+      "--text-xl",
+      "--text-xs",
+      "--tracking-display",
+      "--tracking-wide",
+      "--warning"
+    ],
+    "tokenKinds": {
+      "--pitch-green": "color",
+      "--pitch-green-dark": "color",
+      "--pitch-green-darker": "color",
+      "--pitch-green-light": "color",
+      "--pitch-green-lighter": "color",
+      "--line-white": "color",
+      "--line-white-dim": "color",
+      "--scoreboard-black": "color",
+      "--scoreboard-ink": "color",
+      "--scoreboard-slate": "color",
+      "--card-yellow": "color",
+      "--card-yellow-dark": "color",
+      "--card-red": "color",
+      "--card-red-dark": "color",
+      "--goal-orange": "color",
+      "--goal-orange-dark": "color",
+      "--sky-blue": "color",
+      "--sky-blue-dark": "color",
+      "--grey-100": "color",
+      "--grey-200": "color",
+      "--grey-300": "color",
+      "--grey-400": "color",
+      "--grey-500": "color",
+      "--bg": "color",
+      "--bg-field": "color",
+      "--surface": "color",
+      "--surface-ink": "color",
+      "--ink": "color",
+      "--ink-on-dark": "color",
+      "--ink-muted": "color",
+      "--border-color": "color",
+      "--shadow-color": "shadow",
+      "--primary": "color",
+      "--primary-hover": "color",
+      "--primary-active": "color",
+      "--danger": "color",
+      "--warning": "color",
+      "--success": "color",
+      "--info": "color",
+      "--highlight": "color",
+      "--disabled-bg": "color",
+      "--disabled-ink": "color",
+      "--disabled-border": "color",
+      "--border-thin": "spacing",
+      "--border": "spacing",
+      "--border-thick": "spacing",
+      "--border-chunky": "spacing",
+      "--radius": "radius",
+      "--radius-notch": "radius",
+      "--shadow-xs": "shadow",
+      "--shadow-sm": "shadow",
+      "--shadow": "shadow",
+      "--shadow-lg": "shadow",
+      "--shadow-xl": "shadow",
+      "--shadow-pressed": "shadow",
+      "--space-1": "spacing",
+      "--space-2": "spacing",
+      "--space-3": "spacing",
+      "--space-4": "spacing",
+      "--space-5": "spacing",
+      "--space-6": "spacing",
+      "--space-7": "spacing",
+      "--space-8": "spacing",
+      "--space-9": "spacing",
+      "--font-display": "font",
+      "--font-mono": "font",
+      "--font-body": "font",
+      "--display-xl": "spacing",
+      "--display-lg": "spacing",
+      "--display-md": "spacing",
+      "--display-sm": "spacing",
+      "--display-xs": "spacing",
+      "--text-xl": "font",
+      "--text-lg": "font",
+      "--text-md": "font",
+      "--text-sm": "font",
+      "--text-xs": "font",
+      "--leading-tight": "font",
+      "--leading-snug": "font",
+      "--leading-normal": "font",
+      "--tracking-display": "font",
+      "--tracking-wide": "font"
+    },
+    "fontFamilies": [
+      "Press Start 2P",
+      "Space Grotesk",
+      "VT323"
+    ]
+  }
+}
