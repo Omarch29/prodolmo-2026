@@ -10,7 +10,9 @@ sistema de puntos, pantallas, reglas).
   cliente de servidor (`lib/supabase/server.ts`).
 - **Tailwind CSS v4**: tokens del design system en `@theme` (`app/globals.css`).
 - **Supabase** como backend único (Postgres + Auth + Storage).
-- **Gemini Flash** para IA de texto (wrapper en `lib/gemini/`, aún sin features).
+- **Gemini Flash** para IA de texto (`lib/gemini/`): redacta los mensajes diarios
+  y las previas de partido en el cron. La IA **solo redacta** sobre hechos ya
+  calculados; nunca inventa datos. Lógica pura (prompts/parseo) separada y testeada.
 - Target de deploy: **Vercel Hobby** — no usar nada que rompa en serverless
   (sin estado en memoria entre requests, sin procesos long-running).
 - **Mobile-first**: la mayoría entra desde el celular. BottomNav en mobile,

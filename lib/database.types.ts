@@ -190,6 +190,7 @@ export type Database = {
       }
       matches: {
         Row: {
+          ai_preview: string | null
           away_score: number | null
           away_team_id: string | null
           decided_winner_team_id: string | null
@@ -204,6 +205,7 @@ export type Database = {
           venue: string | null
         }
         Insert: {
+          ai_preview?: string | null
           away_score?: number | null
           away_team_id?: string | null
           decided_winner_team_id?: string | null
@@ -218,6 +220,7 @@ export type Database = {
           venue?: string | null
         }
         Update: {
+          ai_preview?: string | null
           away_score?: number | null
           away_team_id?: string | null
           decided_winner_team_id?: string | null

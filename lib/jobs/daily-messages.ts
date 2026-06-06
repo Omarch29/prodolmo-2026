@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import type { RewriteItem } from "@/lib/gemini/messages-prompt";
 
 type DailyMessageType = Database["public"]["Enums"]["daily_message_type"];
 type MessageInsert = Database["public"]["Tables"]["daily_messages"]["Insert"];
@@ -18,6 +19,12 @@ function dateInTz(d: Date, tz: string = APP_TZ): string {
 }
 
 export type JobResult = { snapshots: number; messages: number; date: string };
+
+/** `rewrite`: opcional, reescribe los textos con IA (mismo orden); si falla, se usan las plantillas. */
+export type RunOptions = {
+  now?: Date;
+  rewrite?: (items: RewriteItem[]) => Promise<string[]>;
+};
 
 type ProfileRow = { id: string; display_name: string };
 type MatchRow = {
@@ -77,8 +84,9 @@ function computeStandings(
  */
 export async function runDailyMessages(
   supabase: SupabaseClient<Database>,
-  now: Date = new Date(),
+  opts: RunOptions = {},
 ): Promise<JobResult> {
+  const now = opts.now ?? new Date();
   const today = dateInTz(now);
   const yesterday = dateInTz(new Date(now.getTime() - 86_400_000));
 
@@ -248,6 +256,24 @@ export async function runDailyMessages(
     // globales
     for (const g of globalMessages) {
       inserts.push({ user_id: uid, message_date: today, type: g.type, priority: g.priority, body: g.body });
+    }
+  }
+
+  // ---- Reescritura con IA (opcional; fallback a las plantillas) ----
+  if (opts.rewrite && inserts.length > 0) {
+    try {
+      const items: RewriteItem[] = inserts.map((ins) => ({
+        type: ins.type,
+        body: ins.body,
+        displayName: ins.user_id ? nameById.get(ins.user_id) ?? "" : "",
+      }));
+      const rewritten = await opts.rewrite(items);
+      inserts.forEach((ins, i) => {
+        const r = rewritten[i];
+        if (r) ins.body = r;
+      });
+    } catch {
+      // mantener las plantillas
     }
   }
 

@@ -67,6 +67,7 @@ export type MatchDetail = {
   away: TeamLite;
   homeScore: number | null;
   awayScore: number | null;
+  aiPreview: string | null;
   myPred: { home: number; away: number; winnerTeamId: string | null } | null;
 };
 
@@ -79,7 +80,7 @@ export async function getMatchForPrediction(
   const { data: m } = await supabase
     .from("matches")
     .select(
-      `id, kickoff_at, status, group_id, home_team_id, away_team_id, home_score, away_score,
+      `id, kickoff_at, status, group_id, home_team_id, away_team_id, home_score, away_score, ai_preview,
        stage:stages(name),
        home_team:teams!matches_home_team_id_fkey(name, code, flag_url),
        away_team:teams!matches_away_team_id_fkey(name, code, flag_url)`,
@@ -107,6 +108,7 @@ export async function getMatchForPrediction(
     away: toTeam(m.away_team),
     homeScore: m.home_score,
     awayScore: m.away_score,
+    aiPreview: m.ai_preview,
     myPred: pred
       ? {
           home: pred.pred_home_score,

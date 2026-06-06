@@ -5,15 +5,9 @@ import { serverEnv } from "@/lib/env";
 /**
  * Wrapper de Gemini (Flash) para las features de IA de texto.
  *
- * ⚠️ PREPARADO PERO SIN IMPLEMENTAR. Las features de IA (ej. los mensajes
- * personalizados del día, §6 de la spec) se construyen más adelante.
- *
- * Uso futuro:
- *   const ai = getGeminiClient();
- *   const res = await ai.models.generateContent({
- *     model: GEMINI_MODEL,
- *     contents: "...",
- *   });
+ * Lo usan (en el cron, precomputado): los mensajes diarios con onda
+ * (lib/gemini/messages.ts) y las previas de partido (lib/gemini/preview.ts).
+ * La IA solo redacta sobre hechos ya calculados; nunca inventa datos.
  *
  * `server-only` impide importar esto desde el cliente (la API key es secreta).
  */

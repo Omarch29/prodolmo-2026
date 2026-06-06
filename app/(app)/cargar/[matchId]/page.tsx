@@ -76,6 +76,14 @@ export default async function CargarMatchPage({
           )}
         </div>
 
+        {/* Previa generada por IA */}
+        {!finished && m.aiPreview && (
+          <div className="mx-4 flex items-start gap-2 bg-scoreboard-black border-pixel px-3 py-2">
+            <span className="text-lg">🎙️</span>
+            <p className="font-body text-xs text-grey-300 italic">{m.aiPreview}</p>
+          </div>
+        )}
+
         {/* Carga / vista */}
         {editable ? (
           <PredictionForm
