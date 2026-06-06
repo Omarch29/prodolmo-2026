@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useSyncExternalStore } from "react";
 
 type Seg = [number, string];
 
@@ -16,24 +16,28 @@ function segments(ms: number): Seg[] | null {
   return [[m, "MIN"], [sec, "SEG"]];
 }
 
-/**
- * Cuenta regresiva al estilo marcador. Empieza a renderizar recién al montar
- * (now=null en el primer render) para evitar mismatch de hidratación.
- */
+// Reloj compartido vía useSyncExternalStore: tickea cada segundo sin
+// setState-en-effect y sin mismatch de hidratación (server -> null).
+function subscribe(onChange: () => void): () => void {
+  const id = setInterval(onChange, 1000);
+  return () => clearInterval(id);
+}
+function getSnapshot(): number {
+  return Math.floor(Date.now() / 1000); // segundos: snapshot estable dentro del mismo segundo
+}
+function getServerSnapshot(): null {
+  return null;
+}
+
+/** Cuenta regresiva al estilo marcador hacia `target` (ISO). */
 export function Countdown({ target }: { target: string }) {
-  const [now, setNow] = useState<number | null>(null);
+  const nowSec = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  useEffect(() => {
-    setNow(Date.now());
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  if (now === null) {
+  if (nowSec === null) {
     return <span className="font-mono text-grey-400 text-2xl">··:··</span>;
   }
 
-  const segs = segments(new Date(target).getTime() - now);
+  const segs = segments(new Date(target).getTime() - nowSec * 1000);
   if (!segs) {
     return <span className="font-display text-card-red text-xs tracking-wide">EN JUEGO</span>;
   }

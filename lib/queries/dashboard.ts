@@ -15,7 +15,9 @@ export type NextMatch = {
 
 const TBD: TeamLite = { name: "Por definir", code: "TBD", flag: null };
 
-function toTeam(t: { name: string; code: string; flag_url: string | null } | null): TeamLite {
+export function toTeam(
+  t: { name: string; code: string; flag_url: string | null } | null,
+): TeamLite {
   if (!t) return TBD;
   return { name: t.name, code: t.code, flag: t.flag_url };
 }
