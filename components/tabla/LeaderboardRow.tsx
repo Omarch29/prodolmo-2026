@@ -34,6 +34,11 @@ export function LeaderboardRow({ row, isMe }: { row: StandingRow; isMe: boolean 
           {row.displayName}
           {row.rank === 1 ? " 👑" : ""}
           {isMe ? " (vos)" : ""}
+          {row.delta != null && row.delta !== 0 && (
+            <span className={cn("ml-1.5 font-display text-[8px]", row.delta > 0 ? "text-pitch-green-lighter" : "text-card-red")}>
+              {row.delta > 0 ? `▲${row.delta}` : `▼${Math.abs(row.delta)}`}
+            </span>
+          )}
         </span>
         <span className="font-body text-[11px] text-grey-400">
           {row.plenos} plenos · {row.aciertos} aciertos

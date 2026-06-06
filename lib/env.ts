@@ -19,11 +19,19 @@ export const env = publicSchema.parse({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 });
 
+// Para variables opcionales: tratar "" (común en .env) como ausente.
+const optionalSecret = z.preprocess(
+  (v) => (v === "" || v == null ? undefined : v),
+  z.string().min(1).optional(),
+);
+
 const serverSchema = z.object({
   // Clave service-role: NUNCA exponer al cliente. Se usa en scripts/admin.
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   // Gemini: opcional por ahora (las features de IA no están implementadas).
-  GEMINI_API_KEY: z.string().min(1).optional(),
+  GEMINI_API_KEY: optionalSecret,
+  // Secreto para autorizar el cron del job de mensajes diarios.
+  CRON_SECRET: optionalSecret,
 });
 
 type ServerEnv = z.infer<typeof serverSchema>;

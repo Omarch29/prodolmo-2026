@@ -8,7 +8,17 @@ export type StandingRow = {
   plenos: number;
   aciertos: number;
   rank: number;
+  /** Movimiento de puesto vs el snapshot de ayer (positivo = subió); null si no hay snapshot. */
+  delta: number | null;
 };
+
+const APP_TZ = "America/Argentina/Buenos_Aires";
+
+function yesterdayInTz(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: APP_TZ }).format(
+    new Date(now.getTime() - 86_400_000),
+  );
+}
 
 /**
  * Tabla de posiciones del grupo (§5.6).
@@ -18,7 +28,7 @@ export type StandingRow = {
 export async function getStandings(
   supabase: SupabaseClient<Database>,
 ): Promise<StandingRow[]> {
-  const [{ data: profiles }, { data: preds }] = await Promise.all([
+  const [{ data: profiles }, { data: preds }, { data: ySnaps }] = await Promise.all([
     supabase.from("profiles").select("id, display_name"),
     supabase
       .from("predictions")
@@ -26,7 +36,10 @@ export async function getStandings(
         "user_id, points_earned, pred_home_score, pred_away_score, match:matches!inner(home_score, away_score, status)",
       )
       .eq("match.status", "finished"),
+    supabase.from("standings_snapshots").select("user_id, posicion").eq("date", yesterdayInTz()),
   ]);
+
+  const posAyer = new Map((ySnaps ?? []).map((s) => [s.user_id, s.posicion]));
 
   type Agg = { points: number; plenos: number; aciertos: number };
   const agg = new Map<string, Agg>();
@@ -73,6 +86,8 @@ export async function getStandings(
       rank = i + 1;
       prevKey = key;
     }
-    return { ...r, rank };
+    const ayer = posAyer.get(r.userId);
+    const delta = ayer != null ? ayer - rank : null;
+    return { ...r, rank, delta };
   });
 }

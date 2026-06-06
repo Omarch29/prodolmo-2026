@@ -12,7 +12,8 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > lib/database.types.ts",
-    "seed:users": "tsx scripts/seed-users.ts"
+    "seed:users": "tsx scripts/seed-users.ts",
+    "job:daily": "tsx scripts/run-daily-messages.ts"
   },
   "dependencies": {
     "@google/genai": "^2.8.0",
