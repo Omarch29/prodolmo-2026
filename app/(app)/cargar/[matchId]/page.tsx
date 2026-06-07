@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMatchForPrediction, getFriendPicks } from "@/lib/queries/cargar";
 import { getComments } from "@/lib/queries/comments";
-import { isPredictionEditable, arePredictionsVisible } from "@/lib/config";
+import { isPredictionEditable } from "@/lib/config";
 import { PredictionForm } from "@/components/cargar/PredictionForm";
 import { FriendPicks } from "@/components/cargar/FriendPicks";
 import { MatchComments } from "@/components/cargar/MatchComments";
@@ -37,10 +37,9 @@ export default async function CargarMatchPage({
 
   const kickoff = new Date(m.kickoffAt);
   const editable = m.status === "scheduled" && isPredictionEditable(kickoff);
-  const visible = arePredictionsVisible(kickoff);
   const finished = m.status === "finished";
   const playable = m.homeTeamId !== null && m.awayTeamId !== null;
-  const friendPicks = visible ? await getFriendPicks(supabase, user.id, matchId) : [];
+  const friendPicks = playable ? await getFriendPicks(supabase, user.id, matchId) : [];
   const comments = playable ? await getComments(supabase, matchId) : [];
 
   return (
@@ -131,8 +130,8 @@ export default async function CargarMatchPage({
           </div>
         )}
 
-        {/* Pronósticos del grupo (visibles tras el cierre) */}
-        {visible && (
+        {/* Pronósticos del grupo */}
+        {playable && (
           <FriendPicks
             picks={friendPicks}
             title={finished ? "Análisis del grupo · quién sumó" : "Pronósticos del grupo"}

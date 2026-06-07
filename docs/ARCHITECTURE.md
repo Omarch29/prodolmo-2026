@@ -69,9 +69,10 @@ principales:
   del partido: marcador exacto → `points_exact`; mismo signo de diferencia →
   `points_outcome`; si no → 0. Los valores por ronda salen de `stages`
   (×1 grupos … ×6 final). Nunca suma exacto + resultado.
-- **Cierre/visibilidad**: función SQL `prediction_lock_interval()` (= 1 h). RLS de
-  `predictions` permite leer las ajenas solo si `now() ≥ kickoff − 1 h`, e
-  insertar/editar solo antes de ese momento. Espejado en `lib/config.ts` para la UI.
+- **Cierre de edición**: función SQL `prediction_lock_interval()` (= 1 h). RLS de
+  `predictions` permite insertar/editar/borrar solo antes de `kickoff − 1 h`
+  (espejado en `lib/config.ts` para la UI). La **lectura** de pronósticos ajenos
+  está abierta a usuarios autenticados (el grupo ve los picks de todos).
 - **RLS** (`0004`): lectura de datos de referencia para autenticados; cada quien
   gestiona lo suyo (pronósticos, comentarios, simulación); escritura de
   fixture/resultados solo service-role.

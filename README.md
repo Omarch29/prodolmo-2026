@@ -20,8 +20,7 @@ retro, **mobile-first** y responsive.
   personalizados del día. Layout de 2 columnas en desktop.
 - **Cargar pronósticos**: fixture filtrable por sección (Grupos F1/F2/F3, 16avos,
   octavos, cuartos, semis, final) y por día; carga/edición hasta **1 h antes** del
-  partido; pronósticos de los demás visibles recién al cerrarse (anti-trampa);
-  **comentarios** por partido.
+  partido; podés ver los pronósticos del resto del grupo; **comentarios** por partido.
 - **Tabla de posiciones**: ranking con desempate por plenos, medallas y
   movimiento ▲/▼ respecto al día anterior.
 - **Detalle de jugador**: KPIs (puntos, plenos, aciertos) y desglose por ronda.
@@ -70,8 +69,8 @@ Detalle completo en **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
   todos los pronósticos de ese partido: **3** por marcador exacto, **1** por
   acertar el resultado, **0** si no, multiplicado por la ronda (×1 grupos … ×6
   final).
-- **Anti-trampa**: hasta `kickoff − 1 h` podés editar y nadie ve tu pronóstico;
-  desde ahí se cierra y se vuelve visible para todos (regla aplicada en RLS).
+- **Cierre de edición**: podés cargar/editar hasta `kickoff − 1 h`; después queda
+  fijo (validado en backend y RLS). Los pronósticos del grupo son visibles para todos.
 - **Mensajes del día**: un cron toma una foto de la tabla (snapshot), calcula
   hechos por usuario (te pasaron, gap al líder, racha, goleada que nadie acertó…)
   y los redacta con Gemini (con plantillas como fallback).
