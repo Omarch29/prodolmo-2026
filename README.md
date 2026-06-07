@@ -1,111 +1,138 @@
-# PRODE Mundial 2026 ⚽
+# PRODOLMO · Prode del Mundial 2026 ⚽
 
-App web de PRODE del Mundial 2026 para un grupo cerrado de amigos: pronosticá
-resultados, sumá puntos y competí en la tabla. Proyecto de práctica profesional
-con estética pixel-art retro.
+App web de **prode** (pool de pronósticos) para un grupo cerrado de amigos: cada
+uno pronostica los resultados del Mundial 2026, suma puntos según acierte y
+compite en una tabla de posiciones. Incluye simulador del cuadro, comentarios por
+partido y "mensajes del día" con onda generados por IA. Estética **pixel-art**
+retro, **mobile-first** y responsive.
 
-**Stack:** Next.js (App Router) · TypeScript estricto · Tailwind CSS v4 ·
-Supabase (Postgres + Auth + Storage) · Server Actions · Gemini Flash (IA, pendiente).
+🔗 **Demo:** https://prodolmo-2026.vercel.app · 📄 [Spec funcional](docs/Prode-Mundial-2026-Spec.md) · 🏗️ [Arquitectura](docs/ARCHITECTURE.md) · 🚀 [Deploy](docs/DEPLOY.md)
 
-> Estado: **cimientos**. Base de datos, auth y ruteo cableados; las pantallas son
-> placeholders navegables. Las features completas y la IA vienen después.
+> Proyecto de práctica profesional, real y deployable. Lista cerrada de usuarios
+> (sin registro abierto).
 
 ---
 
-## Requisitos
+## ✨ Features
 
-- Node.js 20+ (ver `.nvmrc`)
-- Docker (corriendo) — para Supabase local
-- Supabase CLI (se usa vía `npx`, no requiere instalación global)
+- **Login** con Supabase Auth (email + password), lista cerrada sin auto-registro.
+- **Dashboard**: próximo partido por cargar (con cuenta regresiva) + mensajes
+  personalizados del día. Layout de 2 columnas en desktop.
+- **Cargar pronósticos**: fixture filtrable por sección (Grupos F1/F2/F3, 16avos,
+  octavos, cuartos, semis, final) y por día; carga/edición hasta **1 h antes** del
+  partido; pronósticos de los demás visibles recién al cerrarse (anti-trampa);
+  **comentarios** por partido.
+- **Tabla de posiciones**: ranking con desempate por plenos, medallas y
+  movimiento ▲/▼ respecto al día anterior.
+- **Detalle de jugador**: KPIs (puntos, plenos, aciertos) y desglose por ronda.
+- **Simulador del Mundial 2026**: wizard para elegir 1.º/2.º de los 12 grupos,
+  los 8 mejores terceros y completar el cuadro de eliminación (dos llaves
+  enfrentadas) hasta el campeón. No afecta los puntos reales.
+- **Resultados reales** sincronizados desde [football-data.org](https://www.football-data.org).
+- **IA (Gemini Flash)**: reescribe los mensajes del día con tono rioplatense y
+  genera previas de partido. Degradación elegante si no hay API key.
 
-## Setup local
+## 🧰 Tecnologías
 
-```bash
-# 1. Dependencias
-npm install
+| Capa | Stack |
+|---|---|
+| Framework | **Next.js 16** (App Router, Server Components, Server Actions) · **React 19** |
+| Lenguaje | **TypeScript** estricto (sin `any`) |
+| Estilos | **Tailwind CSS v4** (design tokens pixel-art en `@theme`) |
+| Backend | **Supabase** — Postgres + Auth + Storage, **RLS** y triggers |
+| Validación | **Zod** en todos los inputs de Server Actions |
+| IA | **Gemini Flash** (`@google/genai`) |
+| Datos | **football-data.org** (fixture/resultados del Mundial) |
+| Tests | **Vitest** (lógica pura) |
+| Deploy | **Vercel** (Hobby + Cron) + **Supabase Cloud** |
 
-# 2. Levantar Supabase local (Postgres + Auth + Storage en Docker)
-npm run db:start
-#    La primera vez baja imágenes; puede tardar unos minutos.
+## 🏛️ Cómo está hecho (resumen)
 
-# 3. Aplicar migraciones + seed de datos de referencia
-npm run db:reset
+- **Lecturas** por React Server Components; **mutaciones** solo por **Server
+  Actions** validadas con Zod. Nada de API routes para el CRUD.
+- **Seguridad en la base**: la barrera real es **RLS** (no el front). Ej.: un
+  pronóstico ajeno solo es legible a partir de `kickoff − 1 h`; el cierre de carga
+  se valida en el backend y en RLS.
+- **Reglas en la base**: el **cálculo de puntos** vive en un **trigger** de
+  Postgres (se dispara al finalizar un partido). El esquema está en migraciones
+  versionadas (`supabase/migrations/`).
+- **Jobs (cron en Vercel)**: sincronización de fixture/resultados y generación de
+  los mensajes del día + snapshots de la tabla.
+- **Lógica con miga aislada y testeada**: sistema de puntos, ranking, reglas de
+  cierre, cuadro del simulador y mapeos de la API son funciones puras con tests.
 
-# 4. Configurar variables de entorno
-cp .env.example .env.local
-#    Completá NEXT_PUBLIC_SUPABASE_ANON_KEY y SUPABASE_SERVICE_ROLE_KEY con
-#    los valores que imprime:
-npx supabase status
+Detalle completo en **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
-# 5. Crear los usuarios del grupo (lista cerrada, sin auto-registro)
-npm run seed:users
-#    Editá la lista en scripts/seed-users.ts. Contraseña por defecto: prode2026.
+## ⚙️ Cómo funciona (flujos clave)
 
-# 6. (Opcional) Regenerar los tipos de la BD
-npm run db:types
+- **Pronóstico → puntos**: cargás un marcador (Server Action + Zod). Cuando el
+  partido pasa a `finished` (vía sync de la API), un trigger calcula los puntos de
+  todos los pronósticos de ese partido: **3** por marcador exacto, **1** por
+  acertar el resultado, **0** si no, multiplicado por la ronda (×1 grupos … ×6
+  final).
+- **Anti-trampa**: hasta `kickoff − 1 h` podés editar y nadie ve tu pronóstico;
+  desde ahí se cierra y se vuelve visible para todos (regla aplicada en RLS).
+- **Mensajes del día**: un cron toma una foto de la tabla (snapshot), calcula
+  hechos por usuario (te pasaron, gap al líder, racha, goleada que nadie acertó…)
+  y los redacta con Gemini (con plantillas como fallback).
 
-# 7. Levantar la app
-npm run dev
+## 📁 Estructura
+
+```
+app/                 # rutas (App Router): (auth) público · (app) protegido · api/cron
+components/          # ui/ (design system) · nav/ · dashboard/ · cargar/ · tabla/ · jugador/ · sim/
+lib/
+  supabase/          # clientes server/browser/admin + proxy de sesión
+  queries/           # lecturas (RSC)
+  sim/               # lógica pura del cuadro (wc2026)
+  integrations/      # football-data.org (cliente + mapeo)
+  jobs/              # daily-messages, match-previews, sync-fixtures
+  gemini/            # wrapper + prompts
+  validation/        # schemas Zod
+actions/             # Server Actions (mutaciones)
+supabase/migrations/ # esquema versionado (0001..0010) + seed
+scripts/             # seed-users, seed-demo, sync-fixtures, run-daily-messages
+test/                # Vitest (lógica pura)
+design/              # mockups + design system pixel-art (referencia)
+docs/                # spec, arquitectura, deploy
 ```
 
-Abrí http://localhost:3000 e ingresá con uno de los emails sembrados
-(ej. `omar@prode.local` / `prode2026`).
+## 🚀 Setup local
 
-## Scripts
+Requisitos: Node 20+, Docker (para Supabase local), Supabase CLI (vía `npx`).
+
+```bash
+npm install
+npm run db:start        # Supabase local (Postgres + Auth + Storage en Docker)
+npm run db:reset        # aplica migraciones + datos de referencia
+cp .env.example .env.local   # completá las keys (npx supabase status)
+npm run seed:users      # crea los usuarios del grupo (lista cerrada)
+npm run seed:demo       # (opcional) datos de prueba para ver las pantallas "vivas"
+npm run dev             # http://localhost:3000  (login: omar@prode.local / prode2026)
+```
+
+Para traer datos reales en vez del demo: poné `FOOTBALL_DATA_TOKEN` en `.env.local`
+y corré `npm run sync:fixtures`.
+
+## 📜 Scripts
 
 | Script | Qué hace |
 |---|---|
-| `npm run dev` | Servidor de desarrollo |
-| `npm run build` / `start` | Build y arranque de producción |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run lint` | ESLint |
-| `npm run test` / `test:watch` | Tests unitarios (Vitest) |
-| `npm run db:start` / `db:stop` | Levanta/apaga Supabase local |
-| `npm run db:reset` | Recrea la BD: migraciones + seed |
-| `npm run db:types` | Genera `lib/database.types.ts` desde el esquema |
-| `npm run seed:users` | Crea los usuarios del grupo (service-role) |
-| `npm run job:daily` | Corre el job de mensajes diarios contra la BD local |
-| `npm run sync:fixtures` | Sincroniza fixture/resultados desde football-data.org |
+| `npm run dev` / `build` / `start` | Desarrollo / build / producción |
+| `npm run typecheck` · `lint` · `test` | `tsc --noEmit` · ESLint · Vitest |
+| `npm run db:start` / `db:stop` / `db:reset` | Supabase local |
+| `npm run db:types` | Genera los tipos de la BD |
+| `npm run seed:users` · `seed:demo` | Usuarios del grupo · datos de prueba |
+| `npm run sync:fixtures` | Sincroniza fixture/resultados (football-data.org) |
+| `npm run job:daily` | Corre el job de mensajes del día |
 
-## Base de datos
+## ✅ Calidad
 
-- Esquema en migraciones versionadas: `supabase/migrations/`.
-  - `0001` esquema (tablas, enums, índices) · `0002` trigger `profiles` ·
-    `0003` trigger de **cálculo de puntos** · `0004` **RLS**.
-- Datos de referencia (grupos, etapas, selecciones, fixture demo): `supabase/seed.sql`.
-- Sistema de puntos y reglas: ver `docs/Prode-Mundial-2026-Spec.md`.
+`npm run typecheck`, `npm run lint`, `npm run test` y `npm run build` en verde.
+Los tests cubren la lógica pura más propensa a romperse (puntaje/ranking, reglas
+de cierre, cuadro del simulador, mapeos de la API y validaciones Zod).
 
-### Cómo correr migraciones
-- Local: `npm run db:reset` aplica todas las migraciones + seed.
-- Nueva migración: `npx supabase migration new <nombre>` y escribí el SQL.
-- Remoto (deploy, más adelante): `npx supabase db push`.
+## ☁️ Deploy
 
-## Estructura
-
-```
-app/            # rutas (App Router): (auth) público, (app) protegido
-components/     # ui/ (design system) + nav/
-lib/            # supabase/, gemini/, validation/, env, config, types
-actions/        # Server Actions (mutaciones)
-supabase/       # config, migrations/, seed.sql
-scripts/        # seed-users.ts
-design/         # mockups + design system pixel-art (referencia)
-docs/           # spec funcional + técnica
-```
-
-## Resultados reales (football-data.org)
-
-El fixture y los resultados se pueden traer de [football-data.org](https://www.football-data.org)
-(competición FIFA World Cup, code `WC`).
-
-1. Registrate gratis y poné el token en `.env.local`: `FOOTBALL_DATA_TOKEN="..."`.
-2. Sincronizá: `npm run sync:fixtures` (importa selecciones + fixture; actualiza
-   marcador/estado de los partidos → al finalizar, el trigger recalcula los puntos).
-3. En producción corre por cron (`vercel.json` → `/api/cron/sync-fixtures`).
-
-Es idempotente (upsert por `external_id`). Sin token, la app usa el seed/demo.
-> El esquema mapea cualquier proveedor con un cambio acotado (`lib/integrations/`).
-
-## Deploy (pendiente)
-
-Objetivo: Vercel Hobby + Supabase Cloud (free). Se documentará al final.
+Vercel (Hobby + Cron) + Supabase Cloud (free). Paso a paso en
+**[docs/DEPLOY.md](docs/DEPLOY.md)**.
