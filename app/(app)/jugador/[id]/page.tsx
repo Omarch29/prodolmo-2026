@@ -62,10 +62,26 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-3 gap-2 px-4 py-5">
+      <div className="grid grid-cols-3 gap-2 px-4 pt-5">
         <Kpi label="PLENOS" value={detail.kpis.plenos} />
         <Kpi label="ACIERTOS" value={detail.kpis.aciertos} />
         <Kpi label="CARGADOS" value={detail.kpis.cargados} />
+      </div>
+
+      {/* Hábitos de carga */}
+      <div className="grid grid-cols-2 gap-2 px-4 pt-2 pb-5">
+        <div className="flex flex-col items-center bg-scoreboard-ink border-pixel shadow-pixel-xs py-2">
+          <span className="font-mono text-xl text-pitch-green-lighter leading-none">
+            🕒 {detail.habits.avgLoadTime ?? "—"}
+          </span>
+          <span className="font-display text-[6px] tracking-[1px] text-grey-300 mt-1">HORARIO DE CARGA</span>
+        </div>
+        <div className="flex flex-col items-center bg-scoreboard-ink border-pixel shadow-pixel-xs py-2">
+          <span className="font-mono text-xl text-pitch-green-lighter leading-none">
+            ⏱ {detail.habits.avgLeadTime ?? "—"}
+          </span>
+          <span className="font-display text-[6px] tracking-[1px] text-grey-300 mt-1">ANTICIPACIÓN</span>
+        </div>
       </div>
 
       {/* Desglose por ronda */}
