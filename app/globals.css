@@ -130,10 +130,39 @@
   }
   body {
     min-height: 100%;
-    background-color: var(--color-scoreboard-black);
+    background-color: var(--color-scoreboard-ink);
     color: var(--color-ink-on-dark);
     font-family: var(--font-body);
     /* feel pixel: sin antialias suave en la tipografía retro */
     -webkit-font-smoothing: none;
+    /* textura: grilla pixel sutil + cancha de fondo */
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
+
+/* ============================================================
+   Animaciones (papelitos / confetti). Cuadraditos pixel cayendo.
+   ============================================================ */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-24px) rotate(0deg);
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(108vh) rotate(540deg);
+    opacity: 0.9;
+  }
+}
+
+/* Respetar a quien prefiere menos movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  .confetti-overlay {
+    display: none;
   }
 }

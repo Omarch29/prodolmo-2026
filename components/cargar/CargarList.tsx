@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { motion } from "motion/react";
 import { MatchListRow } from "./MatchListRow";
 import { cn } from "@/lib/utils";
 import { sectionOf, sectionsFrom } from "@/lib/cargar/sections";
@@ -93,9 +94,16 @@ export function CargarList({ matches, defaultKey }: { matches: CargarMatch[]; de
           No hay partidos en esta sección.
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 px-4">
-          {visible.map((m) => (
-            <MatchListRow key={m.id} m={m} />
+        <div key={`${sectionKey}-${effectiveDay ?? ""}`} className="grid grid-cols-1 lg:grid-cols-2 gap-3 px-4">
+          {visible.map((m, i) => (
+            <motion.div
+              key={m.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.15, delay: Math.min(i * 0.015, 0.25) }}
+            >
+              <MatchListRow m={m} />
+            </motion.div>
           ))}
         </div>
       )}
