@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { saveSimPick, resetSim } from "@/actions/simulations";
 import { Button } from "@/components/ui/Button";
+import { Flag } from "@/components/ui/Flag";
 import { cn } from "@/lib/utils";
 import { participantsOf, winnerOf, championOf } from "@/lib/sim/bracket";
 import type { BracketSlot, TeamInfo } from "@/lib/queries/sim";
@@ -78,7 +79,9 @@ export function Simulator({
           <div className="font-display text-[8px] tracking-[1px] text-line-white mb-3">🏆 CAMPEÓN DEL MUNDIAL</div>
           {champ ? (
             <>
-              <div className="text-5xl leading-none">{champ.flag ?? "🏆"}</div>
+              <div className="flex justify-center">
+                <Flag flag={champ.flag} size={48} />
+              </div>
               <div className="font-display text-line-white text-sm mt-3">{champ.name}</div>
             </>
           ) : (
@@ -119,7 +122,7 @@ export function Simulator({
                           selected ? "bg-pitch-green text-ink" : "text-line-white disabled:text-grey-500",
                         )}
                       >
-                        <span className="text-xl">{t?.flag ?? "⚽"}</span>
+                        <Flag flag={t?.flag ?? null} size={20} />
                         <span className="font-display text-[10px] flex-1">{t?.name ?? "Por definir"}</span>
                         <span className="font-display text-[7px] tracking-[0.5px]">
                           {selected ? "✓ PASA" : teamId ? "ELEGIR" : "—"}

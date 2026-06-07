@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Countdown } from "@/components/ui/Countdown";
+import { Flag } from "@/components/ui/Flag";
 import { buttonClassName } from "@/components/ui/Button";
 import type { NextMatch, TeamLite } from "@/lib/queries/dashboard";
 
 function Team({ t }: { t: TeamLite }) {
   return (
     <div className="flex flex-col items-center gap-1 w-20">
-      <span className="text-4xl leading-none">{t.flag ?? "⚽"}</span>
+      <Flag flag={t.flag} size={40} />
       <span className="font-display text-[10px] text-line-white">{t.code}</span>
     </div>
   );

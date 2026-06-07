@@ -6,12 +6,13 @@ import { isPredictionEditable, arePredictionsVisible } from "@/lib/config";
 import { PredictionForm } from "@/components/cargar/PredictionForm";
 import { FriendPicks } from "@/components/cargar/FriendPicks";
 import { Countdown } from "@/components/ui/Countdown";
+import { Flag } from "@/components/ui/Flag";
 import type { TeamLite } from "@/lib/queries/dashboard";
 
 function Team({ t }: { t: TeamLite }) {
   return (
     <div className="flex flex-col items-center gap-1 w-24">
-      <span className="text-4xl leading-none">{t.flag ?? "⚽"}</span>
+      <Flag flag={t.flag} size={40} />
       <span className="font-display text-[10px] text-line-white text-center">{t.code}</span>
     </div>
   );

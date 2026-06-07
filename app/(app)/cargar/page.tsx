@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCargarMatches } from "@/lib/queries/cargar";
 import { isPredictionEditable } from "@/lib/config";
-import { MatchListRow } from "@/components/cargar/MatchListRow";
+import { defaultSectionKey } from "@/lib/cargar/sections";
+import { CargarList } from "@/components/cargar/CargarList";
 
 export default async function CargarPage() {
   const supabase = await createClient();
@@ -24,23 +25,14 @@ export default async function CargarPage() {
         </span>
       </header>
 
-      <div className="flex flex-col gap-3 py-5">
-        <div className="px-4 font-display text-[10px] tracking-[1px] text-line-white flex items-center justify-between">
-          <span>🗓 PARTIDOS</span>
-          <span className="text-grey-400 text-[8px]">{matches.length} EN TOTAL</span>
-        </div>
-
+      <div className="py-5">
         {matches.length === 0 ? (
           <div className="mx-4 bg-scoreboard-slate border-pixel-thick shadow-pixel p-6 font-body text-sm text-grey-300">
-            No hay partidos por jugar en el fixture.
+            No hay partidos en el fixture. Sincronizá con <code>npm run sync:fixtures</code>.
           </div>
         ) : (
-          matches.map((m) => <MatchListRow key={m.id} m={m} />)
+          <CargarList matches={matches} defaultKey={defaultSectionKey(matches)} />
         )}
-
-        <p className="px-4 text-center font-body text-xs text-grey-400">
-          Tocá un partido para cargar o editar tu pronóstico ▸
-        </p>
       </div>
     </div>
   );

@@ -20,6 +20,7 @@ export type FdMatch = {
   utcDate: string;
   status: string; // SCHEDULED | TIMED | IN_PLAY | PAUSED | FINISHED | ...
   stage: string; // GROUP_STAGE | LAST_16 | QUARTER_FINALS | ...
+  matchday: number | null; // jornada (1-3) en fase de grupos
   group: string | null; // "GROUP A" | null
   homeTeam: FdMatchTeam;
   awayTeam: FdMatchTeam;

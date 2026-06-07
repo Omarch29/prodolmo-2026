@@ -72,6 +72,7 @@ export function normalizeTeam(t: FdTeam): NormalizedTeam {
 export type NormalizedMatch = {
   externalId: number;
   stageSort: number | null;
+  matchday: number | null;
   groupLetter: string | null;
   homeExternalId: number | null;
   awayExternalId: number | null;
@@ -85,6 +86,7 @@ export function normalizeMatch(m: FdMatch): NormalizedMatch {
   return {
     externalId: m.id,
     stageSort: mapStageSortOrder(m.stage),
+    matchday: m.matchday ?? null,
     groupLetter: mapGroupLetter(m.group),
     homeExternalId: m.homeTeam?.id ?? null,
     awayExternalId: m.awayTeam?.id ?? null,

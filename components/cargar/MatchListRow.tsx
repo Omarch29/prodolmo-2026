@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Countdown } from "@/components/ui/Countdown";
+import { Flag } from "@/components/ui/Flag";
 import { buttonClassName } from "@/components/ui/Button";
 import { isPredictionEditable } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -39,7 +40,7 @@ export function MatchListRow({ m }: { m: CargarMatch }) {
 
       <div className="flex items-center justify-between gap-2">
         <span className="flex items-center gap-1.5 font-display text-[10px] text-line-white w-24">
-          <span className="text-xl">{m.home.flag ?? "⚽"}</span>
+          <Flag flag={m.home.flag} size={20} />
           {m.home.code}
         </span>
 
@@ -49,7 +50,7 @@ export function MatchListRow({ m }: { m: CargarMatch }) {
 
         <span className="flex items-center gap-1.5 justify-end font-display text-[10px] text-line-white w-24">
           {m.away.code}
-          <span className="text-xl">{m.away.flag ?? "⚽"}</span>
+          <Flag flag={m.away.flag} size={20} />
         </span>
       </div>
 

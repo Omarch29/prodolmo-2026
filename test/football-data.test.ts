@@ -67,6 +67,7 @@ describe("normalizeMatch", () => {
     utcDate: "2026-06-12T19:00:00Z",
     status: "FINISHED",
     stage: "GROUP_STAGE",
+    matchday: 1,
     group: "GROUP A",
     homeTeam: { id: 762, name: "Argentina", tla: "ARG" },
     awayTeam: { id: 763, name: "México", tla: "MEX" },
@@ -77,6 +78,7 @@ describe("normalizeMatch", () => {
     expect(normalizeMatch(base)).toEqual({
       externalId: 1,
       stageSort: 1,
+      matchday: 1,
       groupLetter: "A",
       homeExternalId: 762,
       awayExternalId: 763,

@@ -60,6 +60,7 @@ export async function syncFixtures(
     rows.push({
       external_id: n.externalId,
       stage_id: stageId,
+      matchday: n.matchday,
       group_id: n.groupLetter ? groupByName.get(n.groupLetter) ?? null : null,
       home_team_id: n.homeExternalId != null ? teamByExternal.get(n.homeExternalId) ?? null : null,
       away_team_id: n.awayExternalId != null ? teamByExternal.get(n.awayExternalId) ?? null : null,
