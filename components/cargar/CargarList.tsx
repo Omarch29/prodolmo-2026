@@ -4,8 +4,10 @@ import { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { MatchListRow } from "./MatchListRow";
 import { cn } from "@/lib/utils";
-import { sectionOf, sectionsFrom } from "@/lib/cargar/sections";
+import { sectionOf, sectionsFrom, defaultSectionKey } from "@/lib/cargar/sections";
 import type { CargarMatch } from "@/lib/queries/cargar";
+
+type Tab = "play" | "done";
 
 const TZ = "America/Argentina/Buenos_Aires";
 const dayKey = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(iso));
@@ -14,21 +16,31 @@ const dayLabel = (iso: string) =>
     new Date(iso),
   );
 
-const byKickoff = (a: CargarMatch, b: CargarMatch) =>
+const asc = (a: CargarMatch, b: CargarMatch) =>
   new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime();
 
-export function CargarList({ matches, defaultKey }: { matches: CargarMatch[]; defaultKey: string }) {
-  const sections = useMemo(() => sectionsFrom(matches), [matches]);
+export function CargarList({ matches }: { matches: CargarMatch[] }) {
+  const porJugar = useMemo(() => matches.filter((m) => m.status !== "finished"), [matches]);
+  const jugados = useMemo(() => matches.filter((m) => m.status === "finished"), [matches]);
 
-  const [sectionKey, setSectionKey] = useState(defaultKey);
+  const playDefault = useMemo(() => defaultSectionKey(porJugar), [porJugar]);
+  const doneDefault = useMemo(() => {
+    const last = [...jugados].sort((a, b) => -asc(a, b))[0];
+    return last ? sectionOf(last).key : sectionsFrom(jugados)[0]?.key ?? "";
+  }, [jugados]);
+
+  const [tab, setTab] = useState<Tab>("play");
+  const [sectionKey, setSectionKey] = useState(playDefault);
   const [day, setDay] = useState<string | null>(null);
 
+  const subset = tab === "play" ? porJugar : jugados;
+  const sections = useMemo(() => sectionsFrom(subset), [subset]);
   const activeSection = sections.find((s) => s.key === sectionKey) ?? sections[0];
 
-  const sectionMatches = useMemo(
-    () => matches.filter((m) => sectionOf(m).key === sectionKey).sort(byKickoff),
-    [matches, sectionKey],
-  );
+  const sectionMatches = useMemo(() => {
+    const list = subset.filter((m) => sectionOf(m).key === activeSection?.key).sort(asc);
+    return tab === "done" ? list.reverse() : list;
+  }, [subset, activeSection, tab]);
 
   const days = useMemo(() => {
     if (!activeSection?.isGroup) return [] as [string, string][];
@@ -37,7 +49,6 @@ export function CargarList({ matches, defaultKey }: { matches: CargarMatch[]; de
     return [...map.entries()];
   }, [activeSection, sectionMatches]);
 
-  // En grupos siempre hay un día seleccionado (sin "Todos"); por defecto el primero.
   const effectiveDay = activeSection?.isGroup
     ? day && days.some(([k]) => k === day)
       ? day
@@ -48,64 +59,93 @@ export function CargarList({ matches, defaultKey }: { matches: CargarMatch[]; de
     ? sectionMatches.filter((m) => dayKey(m.kickoffAt) === effectiveDay)
     : sectionMatches;
 
+  const selectTab = (t: Tab) => {
+    setTab(t);
+    setSectionKey(t === "play" ? playDefault : doneDefault);
+    setDay(null);
+  };
   const selectSection = (k: string) => {
     setSectionKey(k);
     setDay(null);
   };
 
-  const tab = "font-display text-[8px] tracking-[1px] border-pixel px-2.5 py-2";
+  const tabBtn = "font-display text-[10px] tracking-[1px] border-pixel px-3 py-2";
+  const sec = "font-display text-[8px] tracking-[1px] border-pixel px-2.5 py-2";
   const chip = "font-body text-xs border-pixel px-2 py-1";
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Tabs por sección (envuelven a la fila de abajo si no entran) */}
-      <div className="flex flex-wrap gap-2 px-4">
-        {sections.map((s) => (
-          <button
-            key={s.key}
-            type="button"
-            onClick={() => selectSection(s.key)}
-            className={cn(tab, s.key === sectionKey ? "bg-pitch-green text-ink" : "bg-scoreboard-slate text-grey-300")}
-          >
-            {s.label}
-          </button>
-        ))}
+      {/* Toggle Por jugar / Jugados */}
+      <div className="flex gap-2 px-4">
+        <button
+          type="button"
+          onClick={() => selectTab("play")}
+          className={cn(tabBtn, tab === "play" ? "bg-card-yellow text-ink" : "bg-scoreboard-slate text-grey-300")}
+        >
+          ⚽ POR JUGAR
+        </button>
+        <button
+          type="button"
+          onClick={() => selectTab("done")}
+          className={cn(tabBtn, tab === "done" ? "bg-card-yellow text-ink" : "bg-scoreboard-slate text-grey-300")}
+        >
+          ✓ JUGADOS
+        </button>
       </div>
 
-      {/* Subfiltro por día (solo grupos) */}
-      {activeSection?.isGroup && days.length > 1 && (
-        <div className="flex flex-wrap gap-2 px-4">
-          {days.map(([k, label]) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setDay(k)}
-              className={cn(chip, effectiveDay === k ? "bg-card-yellow text-ink" : "bg-scoreboard-black text-grey-300")}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Lista: 1 columna en mobile, varias en desktop */}
-      {visible.length === 0 ? (
+      {subset.length === 0 ? (
         <div className="mx-4 bg-scoreboard-slate border-pixel-thick shadow-pixel p-6 font-body text-sm text-grey-300">
-          No hay partidos en esta sección.
+          {tab === "play" ? "No hay partidos por jugar." : "Todavía no se jugó ningún partido."}
         </div>
       ) : (
-        <div key={`${sectionKey}-${effectiveDay ?? ""}`} className="grid grid-cols-1 lg:grid-cols-2 gap-3 px-4">
-          {visible.map((m, i) => (
-            <motion.div
-              key={m.id}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.15, delay: Math.min(i * 0.015, 0.25) }}
-            >
-              <MatchListRow m={m} />
-            </motion.div>
-          ))}
-        </div>
+        <>
+          {/* Secciones */}
+          <div className="flex flex-wrap gap-2 px-4">
+            {sections.map((s) => (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => selectSection(s.key)}
+                className={cn(
+                  sec,
+                  s.key === activeSection?.key ? "bg-pitch-green text-ink" : "bg-scoreboard-slate text-grey-300",
+                )}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Subfiltro por día (solo grupos) */}
+          {activeSection?.isGroup && days.length > 1 && (
+            <div className="flex flex-wrap gap-2 px-4">
+              {days.map(([k, label]) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setDay(k)}
+                  className={cn(chip, effectiveDay === k ? "bg-card-yellow text-ink" : "bg-scoreboard-black text-grey-300")}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Lista: 1 columna en mobile, varias en desktop */}
+          <div key={`${tab}-${activeSection?.key}-${effectiveDay ?? ""}`} className="grid grid-cols-1 lg:grid-cols-2 gap-3 px-4">
+            {visible.map((m, i) => (
+              <motion.div
+                key={m.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.15, delay: Math.min(i * 0.015, 0.25) }}
+              >
+                <MatchListRow m={m} />
+              </motion.div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

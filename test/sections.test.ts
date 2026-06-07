@@ -13,7 +13,10 @@ function m(partial: Partial<CargarMatch>): CargarMatch {
     home: { name: "A", code: "A", flag: null },
     away: { name: "B", code: "B", flag: null },
     playable: true,
+    homeScore: null,
+    awayScore: null,
     myPred: null,
+    myPoints: null,
     ...partial,
   };
 }

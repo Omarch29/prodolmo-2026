@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCargarMatches } from "@/lib/queries/cargar";
 import { isPredictionEditable } from "@/lib/config";
-import { defaultSectionKey } from "@/lib/cargar/sections";
 import { CargarList } from "@/components/cargar/CargarList";
 
 export default async function CargarPage() {
@@ -31,7 +30,7 @@ export default async function CargarPage() {
             No hay partidos en el fixture. Sincronizá con <code>npm run sync:fixtures</code>.
           </div>
         ) : (
-          <CargarList matches={matches} defaultKey={defaultSectionKey(matches)} />
+          <CargarList matches={matches} />
         )}
       </div>
     </div>

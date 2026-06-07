@@ -14,47 +14,55 @@ export type CargarMatch = {
   home: TeamLite;
   away: TeamLite;
   playable: boolean; // ambos equipos definidos (no es un cruce "por definir")
+  homeScore: number | null;
+  awayScore: number | null;
   myPred: { home: number; away: number } | null;
+  myPoints: number | null;
 };
 
-const MATCH_SELECT = `id, kickoff_at, status, group_id, matchday,
+const MATCH_SELECT = `id, kickoff_at, status, group_id, matchday, home_score, away_score,
   stage:stages(name),
   home_team:teams!matches_home_team_id_fkey(name, code, flag_url),
   away_team:teams!matches_away_team_id_fkey(name, code, flag_url)`;
 
-/** Fixture cargable: partidos por jugar / en curso, con mi pronóstico. */
+/** Fixture completo (por jugar, en curso y jugados) con mi pronóstico y puntos. */
 export async function getCargarMatches(
   supabase: SupabaseClient<Database>,
   userId: string,
 ): Promise<CargarMatch[]> {
   const [{ data: matches }, { data: preds }] = await Promise.all([
-    supabase
-      .from("matches")
-      .select(MATCH_SELECT)
-      .in("status", ["scheduled", "in_progress"])
-      .order("kickoff_at", { ascending: true }),
+    supabase.from("matches").select(MATCH_SELECT).order("kickoff_at", { ascending: true }),
     supabase
       .from("predictions")
-      .select("match_id, pred_home_score, pred_away_score")
+      .select("match_id, pred_home_score, pred_away_score, points_earned")
       .eq("user_id", userId),
   ]);
 
   const predMap = new Map(
-    (preds ?? []).map((p) => [p.match_id, { home: p.pred_home_score, away: p.pred_away_score }]),
+    (preds ?? []).map((p) => [
+      p.match_id,
+      { home: p.pred_home_score, away: p.pred_away_score, points: p.points_earned },
+    ]),
   );
 
-  return (matches ?? []).map((m) => ({
-    id: m.id,
-    kickoffAt: m.kickoff_at,
-    status: m.status,
-    isKnockout: m.group_id === null,
-    stageName: m.stage?.name ?? "",
-    matchday: m.matchday,
-    home: toTeam(m.home_team),
-    away: toTeam(m.away_team),
-    playable: !!m.home_team && !!m.away_team,
-    myPred: predMap.get(m.id) ?? null,
-  }));
+  return (matches ?? []).map((m) => {
+    const pred = predMap.get(m.id);
+    return {
+      id: m.id,
+      kickoffAt: m.kickoff_at,
+      status: m.status,
+      isKnockout: m.group_id === null,
+      stageName: m.stage?.name ?? "",
+      matchday: m.matchday,
+      home: toTeam(m.home_team),
+      away: toTeam(m.away_team),
+      playable: !!m.home_team && !!m.away_team,
+      homeScore: m.home_score,
+      awayScore: m.away_score,
+      myPred: pred ? { home: pred.home, away: pred.away } : null,
+      myPoints: pred?.points ?? null,
+    };
+  });
 }
 
 export type MatchDetail = {
