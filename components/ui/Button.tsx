@@ -13,8 +13,8 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  md: "text-[10px] px-[18px] py-[14px] shadow-pixel",
-  sm: "text-[8px] px-3 py-[9px] shadow-pixel-xs",
+  md: "text-[10px] px-[18px] py-[14px] shadow-pixel-lg hover:shadow-pixel-xl",
+  sm: "text-[8px] px-3 py-[9px] shadow-pixel hover:shadow-pixel-lg",
 };
 
 /**
@@ -38,10 +38,13 @@ export function buttonClassName({
   return cn(
     "inline-flex items-center justify-center gap-[10px] cursor-pointer select-none",
     "font-display uppercase tracking-[1.5px] border-pixel rounded-none",
-    "transition-[transform,box-shadow,background] duration-[60ms]",
-    "active:translate-x-[3px] active:translate-y-[3px] active:shadow-pixel-pressed",
+    "transition-[transform,box-shadow,background] duration-[80ms]",
+    // se levanta al hover y se hunde al presionar
+    "hover:-translate-x-[1px] hover:-translate-y-[1px]",
+    "active:translate-x-[4px] active:translate-y-[4px] active:shadow-pixel-pressed",
     "disabled:cursor-not-allowed disabled:bg-disabled-bg disabled:text-disabled-ink",
     "disabled:border-disabled-border disabled:shadow-pixel disabled:translate-x-0 disabled:translate-y-0",
+    "disabled:hover:translate-x-0 disabled:hover:translate-y-0",
     VARIANT_CLASSES[variant],
     SIZE_CLASSES[size],
     block && "w-full",

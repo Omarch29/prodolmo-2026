@@ -29,7 +29,10 @@ export function DailyMessages({
           {messages.map((m) => (
             <div
               key={m.id}
-              className={cn(mx, "bg-line-white text-ink border-pixel-thick shadow-pixel p-3 font-body text-sm")}
+              className={cn(
+                mx,
+                "bg-line-white text-ink border-pixel-thick border-l-[6px] border-l-goal-orange shadow-pixel p-3 font-body text-sm",
+              )}
             >
               {m.body}
             </div>

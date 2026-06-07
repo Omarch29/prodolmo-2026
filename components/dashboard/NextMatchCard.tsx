@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Countdown } from "@/components/ui/Countdown";
 import { Flag } from "@/components/ui/Flag";
 import { buttonClassName } from "@/components/ui/Button";
+import { cn } from "@/lib/utils";
 import type { NextMatch, TeamLite } from "@/lib/queries/dashboard";
 
 function Team({ t }: { t: TeamLite }) {
@@ -15,7 +16,14 @@ function Team({ t }: { t: TeamLite }) {
 
 export function NextMatchCard({ match, bare = false }: { match: NextMatch; bare?: boolean }) {
   return (
-    <div className={`${bare ? "" : "mx-4"} ds-pitch border-pixel-thick shadow-pixel`}>
+    <div
+      className={cn(
+        bare ? "" : "mx-4",
+        "ds-pitch border-pixel-thick shadow-pixel",
+        // si todavía no cargaste, resaltar con borde punteado
+        !match.alreadyPredicted && "outline outline-2 outline-dashed outline-card-yellow -outline-offset-4",
+      )}
+    >
       <div className="flex justify-between items-center bg-scoreboard-ink px-3 py-2 font-display text-[8px] tracking-[1.5px] text-line-white">
         <span>⚽ PRÓXIMO PARTIDO</span>
         <span className="text-pitch-green-lighter">{match.stageName}</span>
