@@ -23,7 +23,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen">
       <Sidebar displayName={displayName} />
-      <main className="flex-1 pb-20 md:pb-0">{children}</main>
+      {/* En desktop el contenido (diseñado mobile-first) se encolumna y enmarca
+          como panel, en vez de estirarse al 100% del ancho. */}
+      <main className="flex-1 pb-20 md:pb-0 md:flex md:justify-center">
+        <div className="w-full max-w-md md:min-h-screen md:border-x-[3px] md:border-border">
+          {children}
+        </div>
+      </main>
       <BottomNav />
     </div>
   );
