@@ -14,6 +14,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Mockups de referencia (no son parte de la app):
     "design/**",
+    // E2E (tiene su propio tsconfig + globals de Cypress):
+    "cypress/**",
+    "cypress.config.ts",
   ]),
 ]);
 

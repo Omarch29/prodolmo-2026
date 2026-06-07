@@ -17,7 +17,10 @@
     "job:daily": "tsx scripts/run-daily-messages.ts",
     "sync:fixtures": "tsx scripts/sync-fixtures.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e": "cypress run",
+    "e2e:open": "cypress open",
+    "e2e:ci": "start-server-and-test dev http://localhost:3000 'cypress run'"
   },
   "dependencies": {
     "@google/genai": "^2.8.0",
@@ -34,9 +37,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cypress": "^15.16.0",
     "dotenv": "^17.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
+    "start-server-and-test": "^3.0.8",
     "supabase": "^2.0.0",
     "tailwindcss": "^4",
     "tsx": "^4.19.0",
