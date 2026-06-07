@@ -301,7 +301,7 @@ export function Simulator({
 
         {step === "llaves" && (
           <>
-            <div className="bg-bg-field border-pixel-thick shadow-pixel-lg p-4 text-center">
+            <div className="ds-pitch border-pixel-thick shadow-pixel-lg p-4 text-center">
               <div className="font-display text-[8px] tracking-[1px] text-line-white mb-2">🏆 CAMPEÓN</div>
               {champ ? (
                 <>
