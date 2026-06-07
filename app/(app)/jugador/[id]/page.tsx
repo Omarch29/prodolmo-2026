@@ -6,6 +6,7 @@ import { getStandings } from "@/lib/queries/standings";
 import { Avatar } from "@/components/ui/Avatar";
 import { RoundBar } from "@/components/jugador/RoundBar";
 import { AvatarUpload } from "@/components/jugador/AvatarUpload";
+import { cn } from "@/lib/utils";
 
 function Kpi({ label, value }: { label: string; value: number }) {
   return (
@@ -33,6 +34,10 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
   const rank = standings.find((s) => s.userId === id)?.rank ?? standings.length;
   const isMe = id === user.id;
 
+  // Vecinos en la tabla (§5.5 E): el de arriba, este jugador y el de abajo.
+  const idx = standings.findIndex((s) => s.userId === id);
+  const neighbors = idx >= 0 ? standings.slice(Math.max(0, idx - 1), idx + 2) : [];
+
   return (
     <div className="md:max-w-2xl md:mx-auto">
       <header className="flex items-center gap-3 bg-scoreboard-black border-b-[4px] border-border px-4 py-3">
@@ -48,6 +53,7 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
         <div className="flex-1 min-w-0">
           <div className="font-display text-line-white text-sm truncate">
             {detail.displayName.toUpperCase()}
+            {detail.esBot ? " 🤖" : ""}
             {isMe ? " (VOS)" : ""}
           </div>
           <div className="font-body text-xs text-grey-300 mt-1">
@@ -87,6 +93,33 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
           <span className="font-display text-[6px] tracking-[1px] text-grey-300 mt-1">ANTICIPACIÓN</span>
         </div>
       </div>
+
+      {/* Posición y vecinos en la tabla (§5.5 E) */}
+      {neighbors.length > 1 && (
+        <div className="px-4 pb-5">
+          <div className="font-display text-[10px] tracking-[1px] text-line-white mb-2">🏆 EN LA TABLA</div>
+          <div className="bg-scoreboard-black border-pixel-thick shadow-pixel-sm">
+            {neighbors.map((n) => (
+              <div
+                key={n.userId}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 border-b-[2px] border-scoreboard-slate last:border-b-0",
+                  n.userId === id ? "bg-scoreboard-slate" : "",
+                )}
+              >
+                <span className="w-5 text-center font-display text-[10px] text-grey-300">{n.rank}</span>
+                <Avatar name={n.displayName} src={n.avatarUrl} size={24} />
+                <span className="flex-1 truncate font-body text-sm text-line-white">
+                  {n.displayName}
+                  {n.esBot ? " 🤖" : ""}
+                  {n.userId === id ? " (este)" : ""}
+                </span>
+                <span className="font-mono text-card-yellow text-lg">{n.points}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Desglose por ronda */}
       <div className="flex flex-col gap-4 pb-8">

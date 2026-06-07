@@ -21,7 +21,7 @@ export async function getStandings(
   supabase: SupabaseClient<Database>,
 ): Promise<StandingRow[]> {
   const [{ data: profiles }, { data: preds }, { data: ySnaps }] = await Promise.all([
-    supabase.from("profiles").select("id, display_name, avatar_url"),
+    supabase.from("profiles").select("id, display_name, avatar_url, es_bot"),
     supabase
       .from("predictions")
       .select(
@@ -40,6 +40,7 @@ export async function getStandings(
       userId: p.id,
       displayName: p.display_name,
       avatarUrl: p.avatar_url,
+      esBot: p.es_bot,
       points: 0,
       plenos: 0,
       aciertos: 0,

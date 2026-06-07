@@ -26,6 +26,7 @@ export type PlayerDetail = {
   userId: string;
   displayName: string;
   avatarUrl: string | null;
+  esBot: boolean;
   kpis: PlayerKpis;
   habits: PlayerHabits;
   rounds: RoundBreakdown[];
@@ -77,7 +78,7 @@ export async function getPlayerDetail(
 ): Promise<PlayerDetail | null> {
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, display_name, timezone, avatar_url")
+    .select("id, display_name, timezone, avatar_url, es_bot")
     .eq("id", userId)
     .maybeSingle();
   if (!profile) return null;
@@ -164,6 +165,7 @@ export async function getPlayerDetail(
     userId: profile.id,
     displayName: profile.display_name,
     avatarUrl: profile.avatar_url,
+    esBot: profile.es_bot,
     kpis,
     habits,
     rounds,

@@ -32,6 +32,7 @@ export function LeaderboardRow({ row, isMe }: { row: StandingRow; isMe: boolean 
       <span className="flex-1 min-w-0">
         <span className="font-body text-sm text-line-white truncate block">
           {row.displayName}
+          {row.esBot ? " 🤖" : ""}
           {row.rank === 1 ? " 👑" : ""}
           {isMe ? " (vos)" : ""}
           {row.delta != null && row.delta !== 0 && (
