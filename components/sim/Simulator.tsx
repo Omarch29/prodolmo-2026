@@ -1,63 +1,166 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { saveSimPick, resetSim } from "@/actions/simulations";
-import { Button } from "@/components/ui/Button";
+import { saveSimState, resetSim } from "@/actions/simulations";
 import { Flag } from "@/components/ui/Flag";
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
-import { participantsOf, winnerOf, championOf } from "@/lib/sim/bracket";
-import type { BracketSlot, TeamInfo } from "@/lib/queries/sim";
+import {
+  GROUPS,
+  matchesByRound,
+  participantsOf,
+  winnerOfMatch,
+  champion,
+  emptyState,
+  type SimState,
+  type GroupLetter,
+  type Round,
+} from "@/lib/sim/wc2026";
+import type { GroupRoster, TeamInfo } from "@/lib/queries/sim";
 
-const ROUND_LABEL: Record<string, string> = {
-  "QF-1": "CUARTOS · LLAVE 1",
-  "QF-2": "CUARTOS · LLAVE 2",
-  "QF-3": "CUARTOS · LLAVE 3",
-  "QF-4": "CUARTOS · LLAVE 4",
-  "SF-1": "SEMIFINAL 1",
-  "SF-2": "SEMIFINAL 2",
-  FINAL: "FINAL DEL MUNDIAL",
+type Step = "grupos" | "terceros" | "llaves";
+type Teams = Record<string, TeamInfo>;
+type PickFn = (matchId: string, teamId: string | null) => void;
+
+const ROUND_LABEL: Record<Round, string> = {
+  R32: "16avos",
+  R16: "Octavos",
+  QF: "Cuartos",
+  SF: "Semis",
+  F: "Final",
 };
 
-export function Simulator({
-  slots,
+function MatchCard({
+  matchId,
+  state,
   teams,
-  initialPicks,
+  onPick,
 }: {
-  slots: BracketSlot[];
-  teams: Record<string, TeamInfo>;
-  initialPicks: Record<string, string>;
+  matchId: string;
+  state: SimState;
+  teams: Teams;
+  onPick: PickFn;
 }) {
-  const [picks, setPicks] = useState<Record<string, string>>(initialPicks);
+  const [a, b] = participantsOf(matchId, state);
+  const win = winnerOfMatch(matchId, state);
+
+  const row = (teamId: string | null, key: string) => {
+    const t = teamId ? teams[teamId] : undefined;
+    const selected = win !== null && win === teamId;
+    return (
+      <button
+        key={key}
+        type="button"
+        disabled={!teamId}
+        onClick={() => teamId && onPick(matchId, teamId)}
+        className={cn(
+          "w-full flex items-center gap-1.5 px-2 py-1.5 text-left",
+          selected ? "bg-pitch-green text-ink" : "text-line-white disabled:text-grey-500",
+        )}
+      >
+        <Flag flag={t?.flag ?? null} size={16} />
+        <span className="font-display text-[8px] truncate">{t?.code ?? "—"}</span>
+      </button>
+    );
+  };
+
+  return (
+    <div className="bg-scoreboard-black border-pixel min-w-[110px]">
+      {row(a, "a")}
+      <div className="border-t-[2px] border-scoreboard-slate" />
+      {row(b, "b")}
+    </div>
+  );
+}
+
+function BracketColumn({
+  ids,
+  label,
+  state,
+  teams,
+  onPick,
+}: {
+  ids: string[];
+  label: string;
+  state: SimState;
+  teams: Teams;
+  onPick: PickFn;
+}) {
+  return (
+    <div className="flex flex-col justify-around gap-3 min-w-[114px]">
+      <div className="font-display text-[8px] tracking-[1px] text-grey-400 text-center">{label}</div>
+      {ids.map((id) => (
+        <MatchCard key={id} matchId={id} state={state} teams={teams} onPick={onPick} />
+      ))}
+    </div>
+  );
+}
+
+function half(round: Round, side: "L" | "R"): string[] {
+  const all = matchesByRound(round);
+  const mid = all.length / 2;
+  return (side === "L" ? all.slice(0, mid) : all.slice(mid)).map((m) => m.id);
+}
+
+export function Simulator({
+  groups,
+  teams,
+  initial,
+}: {
+  groups: GroupRoster[];
+  teams: Teams;
+  initial: SimState;
+}) {
+  const [state, setState] = useState<SimState>(initial);
+  const [step, setStep] = useState<Step>("grupos");
   const [, startTransition] = useTransition();
 
-  const participants = (slot: BracketSlot) => participantsOf(slot, slots, picks);
-  const winner = (slot: BracketSlot) => winnerOf(slot, slots, picks);
-
-  const pickTeam = (slot: BracketSlot, teamId: string | null) => {
-    if (!teamId) return;
-    setPicks((prev) => ({ ...prev, [slot.slot]: teamId }));
+  const persist = (next: SimState) => {
+    setState(next);
     startTransition(async () => {
-      await saveSimPick({ slot: slot.slot, teamId });
+      await saveSimState(next);
     });
   };
 
+  const toggleRank = (g: GroupLetter, teamId: string) => {
+    const cur = state.groupOrder[g] ?? [];
+    const next = cur.includes(teamId)
+      ? cur.filter((id) => id !== teamId)
+      : cur.length < 4
+        ? [...cur, teamId]
+        : cur;
+    persist({ ...state, groupOrder: { ...state.groupOrder, [g]: next } });
+  };
+  const groupComplete = (g: GroupLetter) => (state.groupOrder[g]?.length ?? 0) >= 3;
+  const allGroupsComplete = GROUPS.every(groupComplete);
+
+  const thirdsPool = GROUPS.map((g) => ({ g, teamId: state.groupOrder[g]?.[2] })).filter(
+    (x): x is { g: GroupLetter; teamId: string } => Boolean(x.teamId),
+  );
+  const toggleThird = (g: GroupLetter) => {
+    const next = state.thirds.includes(g)
+      ? state.thirds.filter((x) => x !== g)
+      : state.thirds.length < 8
+        ? [...state.thirds, g]
+        : state.thirds;
+    persist({ ...state, thirds: next });
+  };
+  const thirdsComplete = state.thirds.length === 8;
+
+  const pickKo: PickFn = (matchId, teamId) => {
+    if (!teamId) return;
+    persist({ ...state, ko: { ...state.ko, [matchId]: teamId } });
+  };
+
   const onReset = () => {
-    setPicks({});
+    setState(emptyState());
     startTransition(async () => {
       await resetSim();
     });
   };
 
-  const champId = championOf(slots, picks);
+  const champId = champion(state);
   const champ = champId ? teams[champId] : undefined;
-
-  // Agrupar slots por etapa, en orden.
-  const rounds: { stageName: string; slots: BracketSlot[] }[] = [];
-  for (const s of slots) {
-    const last = rounds[rounds.length - 1];
-    if (last && last.stageName === s.stageName) last.slots.push(s);
-    else rounds.push({ stageName: s.stageName, slots: [s] });
-  }
 
   return (
     <div>
@@ -66,81 +169,173 @@ export function Simulator({
         <span className="font-display text-[8px] border-pixel px-2 py-1 bg-sky-blue text-line-white">HIPOTÉTICO</span>
       </header>
 
-      <div className="flex flex-col gap-5 py-5">
-        <div className="mx-4 flex items-start gap-2 bg-scoreboard-slate border-pixel px-3 py-2">
-          <span className="text-lg">🧪</span>
-          <p className="font-body text-xs text-grey-300">
-            Probá quién sale campeón completando el cuadro. <strong className="text-line-white">No afecta</strong> tus pronósticos del PRODOLMO.
-          </p>
-        </div>
-
-        {/* Campeón proyectado */}
-        <div className="mx-4 bg-bg-field border-pixel-thick shadow-pixel-lg p-5 text-center">
-          <div className="font-display text-[8px] tracking-[1px] text-line-white mb-3">🏆 CAMPEÓN DEL MUNDIAL</div>
-          {champ ? (
-            <>
-              <div className="flex justify-center">
-                <Flag flag={champ.flag} size={48} />
-              </div>
-              <div className="font-display text-line-white text-sm mt-3">{champ.name}</div>
-            </>
-          ) : (
-            <>
-              <div className="text-5xl leading-none opacity-40">🏆</div>
-              <div className="font-body text-sm text-grey-300 mt-3">
-                Completá la final para ver al campeón.
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Rondas */}
-        {rounds.map((round) => (
-          <div key={round.stageName} className="flex flex-col gap-3">
-            <div className="px-4 font-display text-[10px] tracking-[1px] text-line-white">
-              {round.stageName.toUpperCase()}
-            </div>
-            {round.slots.map((slot) => {
-              const [homeId, awayId] = participants(slot);
-              const win = winner(slot);
-              return (
-                <div key={slot.slot} className="mx-4 bg-scoreboard-black border-pixel-thick shadow-pixel-sm">
-                  <div className="font-display text-[7px] tracking-[1px] text-grey-300 px-3 py-2 border-b-[2px] border-scoreboard-slate">
-                    {ROUND_LABEL[slot.slot] ?? slot.slot}
-                  </div>
-                  {[homeId, awayId].map((teamId, idx) => {
-                    const t = teamId ? teams[teamId] : undefined;
-                    const selected = win !== null && win === teamId;
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        disabled={!teamId}
-                        onClick={() => pickTeam(slot, teamId)}
-                        className={cn(
-                          "w-full flex items-center gap-2 px-3 py-2.5 border-b-[2px] border-scoreboard-slate last:border-b-0 text-left",
-                          selected ? "bg-pitch-green text-ink" : "text-line-white disabled:text-grey-500",
-                        )}
-                      >
-                        <Flag flag={t?.flag ?? null} size={20} />
-                        <span className="font-display text-[10px] flex-1">{t?.name ?? "Por definir"}</span>
-                        <span className="font-display text-[7px] tracking-[0.5px]">
-                          {selected ? "✓ PASA" : teamId ? "ELEGIR" : "—"}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
+      <div className="flex gap-2 px-4 pt-4">
+        {(
+          [
+            ["grupos", "1 · Grupos"],
+            ["terceros", "2 · Terceros"],
+            ["llaves", "3 · Llaves"],
+          ] as [Step, string][]
+        ).map(([s, label]) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setStep(s)}
+            className={cn(
+              "font-display text-[8px] tracking-[1px] border-pixel px-2.5 py-2",
+              step === s ? "bg-pitch-green text-ink" : "bg-scoreboard-slate text-grey-300",
+            )}
+          >
+            {label}
+          </button>
         ))}
+      </div>
 
-        <div className="px-4">
-          <Button variant="info" block onClick={onReset}>
-            ↺ Reiniciar simulación
-          </Button>
-        </div>
+      <div className="p-4 flex flex-col gap-4">
+        {step === "grupos" && (
+          <>
+            <p className="font-body text-xs text-grey-300">
+              En cada grupo, tocá los equipos en orden: 1.º, 2.º, 3.º (y 4.º). Necesitás al menos el podio.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {groups.map((gr) => {
+                const g = gr.group as GroupLetter;
+                const order = state.groupOrder[g] ?? [];
+                return (
+                  <div key={g} className="bg-scoreboard-black border-pixel-thick shadow-pixel-sm p-3">
+                    <div className="font-display text-[9px] tracking-[1px] text-line-white mb-2 flex items-center gap-2">
+                      GRUPO {g}
+                      {groupComplete(g) && <span className="text-pitch-green-lighter">✓</span>}
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      {gr.teams.map((t) => {
+                        const pos = order.indexOf(t.id);
+                        return (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => toggleRank(g, t.id)}
+                            className={cn(
+                              "flex items-center gap-2 px-2 py-1.5 border-pixel",
+                              pos >= 0 ? "bg-scoreboard-slate text-line-white" : "bg-scoreboard-ink text-grey-300",
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "w-5 h-5 flex items-center justify-center font-display text-[9px] shrink-0",
+                                pos >= 0 ? "bg-card-yellow text-ink" : "bg-scoreboard-slate text-grey-400",
+                              )}
+                            >
+                              {pos >= 0 ? pos + 1 : "·"}
+                            </span>
+                            <Flag flag={t.flag} size={18} />
+                            <span className="font-body text-sm truncate">{t.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <Button block onClick={() => setStep("terceros")} disabled={!allGroupsComplete}>
+              {allGroupsComplete ? "Siguiente: terceros ▸" : "Completá el podio de los 12 grupos"}
+            </Button>
+          </>
+        )}
+
+        {step === "terceros" && (
+          <>
+            <p className="font-body text-xs text-grey-300">
+              Elegí los <strong className="text-line-white">8 mejores terceros</strong> que clasifican.{" "}
+              <span className="text-card-yellow">{state.thirds.length}/8</span>
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {thirdsPool.map(({ g, teamId }) => {
+                const t = teams[teamId];
+                const on = state.thirds.includes(g);
+                return (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => toggleThird(g)}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 border-pixel",
+                      on ? "bg-pitch-green text-ink" : "bg-scoreboard-black text-grey-300",
+                    )}
+                  >
+                    <span className="font-display text-[8px] w-8">G{g}</span>
+                    <Flag flag={t?.flag ?? null} size={18} />
+                    <span className="font-body text-sm flex-1 truncate text-left">{t?.name}</span>
+                    <span className="font-display text-[8px]">{on ? "✓" : ""}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={() => setStep("grupos")}>
+                ◂ Grupos
+              </Button>
+              <Button block onClick={() => setStep("llaves")} disabled={!thirdsComplete}>
+                {thirdsComplete ? "Siguiente: llaves ▸" : `Faltan ${8 - state.thirds.length}`}
+              </Button>
+            </div>
+          </>
+        )}
+
+        {step === "llaves" && (
+          <>
+            <div className="bg-bg-field border-pixel-thick shadow-pixel-lg p-4 text-center">
+              <div className="font-display text-[8px] tracking-[1px] text-line-white mb-2">🏆 CAMPEÓN</div>
+              {champ ? (
+                <>
+                  <div className="flex justify-center">
+                    <Flag flag={champ.flag} size={44} />
+                  </div>
+                  <div className="font-display text-line-white text-sm mt-2">{champ.name}</div>
+                </>
+              ) : (
+                <div className="font-body text-sm text-grey-300">Completá las llaves hasta la final.</div>
+              )}
+            </div>
+
+            {/* Mobile: por ronda */}
+            <div className="lg:hidden flex flex-col gap-4">
+              {(["R32", "R16", "QF", "SF", "F"] as Round[]).map((r) => (
+                <div key={r}>
+                  <div className="font-display text-[9px] tracking-[1px] text-line-white mb-2">{ROUND_LABEL[r]}</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {matchesByRound(r).map((m) => (
+                      <MatchCard key={m.id} matchId={m.id} state={state} teams={teams} onPick={pickKo} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: dos mitades enfrentadas */}
+            <div className="hidden lg:flex justify-between items-stretch gap-2 overflow-x-auto">
+              <BracketColumn ids={half("R32", "L")} label="16avos" state={state} teams={teams} onPick={pickKo} />
+              <BracketColumn ids={half("R16", "L")} label="Octavos" state={state} teams={teams} onPick={pickKo} />
+              <BracketColumn ids={half("QF", "L")} label="Cuartos" state={state} teams={teams} onPick={pickKo} />
+              <BracketColumn ids={half("SF", "L")} label="Semis" state={state} teams={teams} onPick={pickKo} />
+              <BracketColumn ids={["F"]} label="Final" state={state} teams={teams} onPick={pickKo} />
+              <BracketColumn ids={half("SF", "R")} label="Semis" state={state} teams={teams} onPick={pickKo} />
+              <BracketColumn ids={half("QF", "R")} label="Cuartos" state={state} teams={teams} onPick={pickKo} />
+              <BracketColumn ids={half("R16", "R")} label="Octavos" state={state} teams={teams} onPick={pickKo} />
+              <BracketColumn ids={half("R32", "R")} label="16avos" state={state} teams={teams} onPick={pickKo} />
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={() => setStep("terceros")}>
+                ◂ Terceros
+              </Button>
+              <Button variant="info" block onClick={onReset}>
+                ↺ Reiniciar
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
