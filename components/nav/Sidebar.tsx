@@ -6,6 +6,7 @@ import { NAV_ITEMS } from "./items";
 import { cn } from "@/lib/utils";
 import { logout } from "@/actions/auth";
 import { Button } from "@/components/ui/Button";
+import { ConfettiToggle } from "@/components/fx/ConfettiToggle";
 
 /** Navegación lateral — solo desktop. */
 export function Sidebar({ displayName }: { displayName: string }) {
@@ -36,12 +37,15 @@ export function Sidebar({ displayName }: { displayName: string }) {
         })}
       </nav>
 
-      <form action={logout} className="mt-auto">
-        <div className="font-body text-xs text-grey-300 mb-2 truncate">{displayName}</div>
-        <Button type="submit" variant="ghost" size="sm" block>
-          Salir
-        </Button>
-      </form>
+      <div className="mt-auto flex flex-col gap-2">
+        <ConfettiToggle />
+        <form action={logout}>
+          <div className="font-body text-xs text-grey-300 mb-2 truncate">{displayName}</div>
+          <Button type="submit" variant="ghost" size="sm" block>
+            Salir
+          </Button>
+        </form>
+      </div>
     </aside>
   );
 }

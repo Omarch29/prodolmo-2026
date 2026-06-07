@@ -121,6 +121,16 @@
   background-size: 12px 12px;
 }
 
+/* Cancha de fútbol: barras verticales alternando dos verdes. */
+@utility ds-pitch {
+  background-color: var(--color-pitch-green-darker);
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--color-pitch-green-darker) 0 22px,
+    var(--color-pitch-green-dark) 22px 44px
+  );
+}
+
 /* ============================================================
    Capa base
    ============================================================ */

@@ -1,5 +1,6 @@
 import type { Database } from "@/lib/database.types";
 import type { FdTeam, FdMatch } from "./types";
+import { TEAM_NAMES_ES } from "./team-names-es";
 
 type MatchStatus = Database["public"]["Enums"]["match_status"];
 
@@ -59,11 +60,12 @@ export type NormalizedTeam = {
 };
 
 export function normalizeTeam(t: FdTeam): NormalizedTeam {
+  // si falta el tla, derivar un código de respaldo del nombre
+  const code = (t.tla ?? t.name.slice(0, 3)).toUpperCase();
   return {
     externalId: t.id,
-    name: t.name,
-    // si falta el tla, derivar un código de respaldo del nombre
-    code: (t.tla ?? t.name.slice(0, 3)).toUpperCase(),
+    name: TEAM_NAMES_ES[code] ?? t.name, // español si lo tenemos
+    code,
     flagUrl: t.crest,
   };
 }
