@@ -6,8 +6,21 @@ function pickColor(name: string): string {
   return PALETTE[h % PALETTE.length] ?? "#7be294";
 }
 
-/** Avatar pixel: inicial sobre un color derivado del nombre (estable). */
-export function Avatar({ name, size = 44 }: { name: string; size?: number }) {
+/** Avatar pixel: foto si hay `src`, si no la inicial sobre un color del nombre. */
+export function Avatar({ name, src, size = 44 }: { name: string; src?: string | null; size?: number }) {
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={name}
+        width={size}
+        height={size}
+        className="border-pixel object-cover shrink-0"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
   return (
     <div
       className="border-pixel flex items-center justify-center shrink-0 font-display text-ink"

@@ -11,18 +11,20 @@ function StatChip({ label, value, valueClass }: { label: string; value: string; 
 
 export function HeroHeader({
   displayName,
+  avatarUrl,
   points,
   rank,
   playerCount,
 }: {
   displayName: string;
+  avatarUrl?: string | null;
   points: number;
   rank: number;
   playerCount: number;
 }) {
   return (
     <header className="flex items-center gap-3 bg-scoreboard-black border-b-[4px] border-border p-4">
-      <Avatar name={displayName} size={56} />
+      <Avatar name={displayName} src={avatarUrl} size={56} />
       <div className="flex-1 min-w-0">
         <div className="font-display text-[8px] tracking-[1.5px] text-pitch-green-lighter">HOLA 👋</div>
         <div className="font-display text-line-white text-sm mt-1 truncate">

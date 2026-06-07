@@ -21,7 +21,7 @@ export async function getStandings(
   supabase: SupabaseClient<Database>,
 ): Promise<StandingRow[]> {
   const [{ data: profiles }, { data: preds }, { data: ySnaps }] = await Promise.all([
-    supabase.from("profiles").select("id, display_name"),
+    supabase.from("profiles").select("id, display_name, avatar_url"),
     supabase
       .from("predictions")
       .select(
@@ -36,7 +36,14 @@ export async function getStandings(
   // Acumular puntos/plenos/aciertos por usuario.
   const agg = new Map<string, StandingAggregate>();
   for (const p of profiles ?? []) {
-    agg.set(p.id, { userId: p.id, displayName: p.display_name, points: 0, plenos: 0, aciertos: 0 });
+    agg.set(p.id, {
+      userId: p.id,
+      displayName: p.display_name,
+      avatarUrl: p.avatar_url,
+      points: 0,
+      plenos: 0,
+      aciertos: 0,
+    });
   }
 
   for (const row of preds ?? []) {

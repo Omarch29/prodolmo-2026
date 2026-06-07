@@ -28,7 +28,13 @@ export default async function DashboardPage() {
     <>
       {/* Mobile */}
       <div className="md:hidden">
-        <HeroHeader displayName={displayName} points={points} rank={rank} playerCount={standings.length} />
+        <HeroHeader
+          displayName={displayName}
+          avatarUrl={me?.avatarUrl}
+          points={points}
+          rank={rank}
+          playerCount={standings.length}
+        />
         <div className="flex flex-col gap-5 py-5">
           {nextMatch ? (
             <NextMatchCard match={nextMatch} />

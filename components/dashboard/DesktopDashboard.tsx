@@ -43,7 +43,7 @@ function MiniStanding({
           )}
         >
           <span className="w-5 text-center font-display text-[10px] text-grey-300">{r.rank}</span>
-          <Avatar name={r.displayName} size={24} />
+          <Avatar name={r.displayName} src={r.avatarUrl} size={24} />
           <span className="flex-1 truncate font-body text-sm text-line-white">
             {r.displayName}
             {r.rank === 1 ? " 👑" : ""}

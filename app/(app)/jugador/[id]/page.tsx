@@ -5,6 +5,7 @@ import { getPlayerDetail } from "@/lib/queries/player";
 import { getStandings } from "@/lib/queries/standings";
 import { Avatar } from "@/components/ui/Avatar";
 import { RoundBar } from "@/components/jugador/RoundBar";
+import { AvatarUpload } from "@/components/jugador/AvatarUpload";
 
 function Kpi({ label, value }: { label: string; value: number }) {
   return (
@@ -43,7 +44,7 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
 
       {/* Hero */}
       <div className="flex items-center gap-3 bg-scoreboard-black border-b-[4px] border-border p-4">
-        <Avatar name={detail.displayName} size={54} />
+        <Avatar name={detail.displayName} src={detail.avatarUrl} size={54} />
         <div className="flex-1 min-w-0">
           <div className="font-display text-line-white text-sm truncate">
             {detail.displayName.toUpperCase()}
@@ -60,6 +61,9 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
           </span>
         </div>
       </div>
+
+      {/* Cambiar foto (solo el propio perfil) */}
+      {isMe && <AvatarUpload />}
 
       {/* KPIs */}
       <div className="grid grid-cols-3 gap-2 px-4 pt-5">

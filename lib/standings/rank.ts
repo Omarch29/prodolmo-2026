@@ -5,6 +5,7 @@
 export type StandingAggregate = {
   userId: string;
   displayName: string;
+  avatarUrl?: string | null;
   points: number;
   plenos: number;
   aciertos: number;
