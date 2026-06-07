@@ -68,19 +68,19 @@ const BY_ID = new Map(KO_MATCHES.map((m) => [m.id, m]));
 
 // ---- Estado de la simulación (lo que el usuario eligió) ----
 export type SimState = {
-  /** Orden por grupo: array de teamIds [1°, 2°, 3°, (4°)]. */
+  /** Orden por grupo: array de teamIds [1°, 2°]. */
   groupOrder: Partial<Record<GroupLetter, string[]>>;
-  /** Grupos cuyos terceros clasifican (deben ser 8). */
-  thirds: GroupLetter[];
+  /** Terceros que clasifican: grupo -> teamId elegido (deben ser 8). */
+  thirds: Partial<Record<GroupLetter, string>>;
   /** Ganador elegido por partido de eliminación: matchId -> teamId. */
   ko: Record<string, string>;
 };
 
-export const emptyState = (): SimState => ({ groupOrder: {}, thirds: [], ko: {} });
+export const emptyState = (): SimState => ({ groupOrder: {}, thirds: {}, ko: {} });
 
 /** Orden determinístico de los grupos de los terceros clasificados (T0..T7). */
-export function thirdSeeding(thirds: GroupLetter[]): GroupLetter[] {
-  return [...thirds].sort();
+export function thirdSeeding(groups: GroupLetter[]): GroupLetter[] {
+  return [...groups].sort();
 }
 
 /** Equipo que ocupa un slot, o null si aún no está definido. */
@@ -91,8 +91,9 @@ export function resolveSlot(spec: SlotSpec, state: SimState): string | null {
     case "runnerup":
       return state.groupOrder[spec.group]?.[1] ?? null;
     case "third": {
-      const g = thirdSeeding(state.thirds)[spec.index];
-      return g ? state.groupOrder[g]?.[2] ?? null : null;
+      const groups = thirdSeeding(Object.keys(state.thirds) as GroupLetter[]);
+      const g = groups[spec.index];
+      return g ? state.thirds[g] ?? null : null;
     }
     case "matchWinner":
       return winnerOfMatch(spec.matchId, state);

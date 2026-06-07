@@ -40,11 +40,23 @@ describe("thirdSeeding", () => {
   });
 });
 
+describe("terceros como grupo->equipo", () => {
+  it("third index usa el orden alfabético de los grupos elegidos", () => {
+    const s = emptyState();
+    s.thirds = { C: "C3", A: "A3", F: "F3" };
+    expect(resolveSlot({ kind: "third", index: 0 }, s)).toBe("A3");
+    expect(resolveSlot({ kind: "third", index: 1 }, s)).toBe("C3");
+    expect(resolveSlot({ kind: "third", index: 2 }, s)).toBe("F3");
+    expect(resolveSlot({ kind: "third", index: 3 }, s)).toBeNull();
+  });
+});
+
 // Estado de ejemplo: todos los grupos ordenados con ids "g{letra}{pos}"
 function fullState(): SimState {
   const s = emptyState();
-  for (const g of GROUPS) s.groupOrder[g] = [`${g}1`, `${g}2`, `${g}3`, `${g}4`];
-  s.thirds = ["A", "B", "C", "D", "E", "F", "G", "H"]; // 8 terceros
+  for (const g of GROUPS) s.groupOrder[g] = [`${g}1`, `${g}2`];
+  // 8 terceros (grupo -> equipo)
+  for (const g of ["A", "B", "C", "D", "E", "F", "G", "H"] as const) s.thirds[g] = `${g}3`;
   return s;
 }
 

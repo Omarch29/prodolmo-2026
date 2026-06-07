@@ -9,7 +9,7 @@ export type SimActionState = { error: string | null };
 
 const simStateSchema = z.object({
   groupOrder: z.record(z.string(), z.array(z.string().uuid()).max(4)),
-  thirds: z.array(z.string()).max(8),
+  thirds: z.record(z.string(), z.string().uuid()),
   ko: z.record(z.string(), z.string().uuid()),
 });
 

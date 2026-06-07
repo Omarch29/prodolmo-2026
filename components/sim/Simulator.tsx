@@ -54,18 +54,18 @@ function MatchCard({
         disabled={!teamId}
         onClick={() => teamId && onPick(matchId, teamId)}
         className={cn(
-          "w-full flex items-center gap-1.5 px-2 py-1.5 text-left",
+          "w-full flex items-center gap-2 px-2.5 py-2 text-left",
           selected ? "bg-pitch-green text-ink" : "text-line-white disabled:text-grey-500",
         )}
       >
-        <Flag flag={t?.flag ?? null} size={16} />
-        <span className="font-display text-[8px] truncate">{t?.code ?? "—"}</span>
+        <Flag flag={t?.flag ?? null} size={18} />
+        <span className="font-display text-[9px] truncate">{t?.code ?? "—"}</span>
       </button>
     );
   };
 
   return (
-    <div className="bg-scoreboard-black border-pixel min-w-[110px]">
+    <div className="bg-scoreboard-black border-pixel w-full">
       {row(a, "a")}
       <div className="border-t-[2px] border-scoreboard-slate" />
       {row(b, "b")}
@@ -87,7 +87,7 @@ function BracketColumn({
   onPick: PickFn;
 }) {
   return (
-    <div className="flex flex-col justify-around gap-3 min-w-[114px]">
+    <div className="flex flex-col justify-around gap-4 w-[140px] shrink-0">
       <div className="font-display text-[8px] tracking-[1px] text-grey-400 text-center">{label}</div>
       {ids.map((id) => (
         <MatchCard key={id} matchId={id} state={state} teams={teams} onPick={onPick} />
@@ -122,30 +122,33 @@ export function Simulator({
     });
   };
 
+  // Solo 1.º y 2.º por grupo. Al cambiar el orden, se limpia el tercero de ese grupo.
   const toggleRank = (g: GroupLetter, teamId: string) => {
     const cur = state.groupOrder[g] ?? [];
     const next = cur.includes(teamId)
       ? cur.filter((id) => id !== teamId)
-      : cur.length < 4
+      : cur.length < 2
         ? [...cur, teamId]
         : cur;
-    persist({ ...state, groupOrder: { ...state.groupOrder, [g]: next } });
+    const nextThirds = { ...state.thirds };
+    delete nextThirds[g];
+    persist({ ...state, groupOrder: { ...state.groupOrder, [g]: next }, thirds: nextThirds });
   };
-  const groupComplete = (g: GroupLetter) => (state.groupOrder[g]?.length ?? 0) >= 3;
+  const groupComplete = (g: GroupLetter) => (state.groupOrder[g]?.length ?? 0) === 2;
   const allGroupsComplete = GROUPS.every(groupComplete);
 
-  const thirdsPool = GROUPS.map((g) => ({ g, teamId: state.groupOrder[g]?.[2] })).filter(
-    (x): x is { g: GroupLetter; teamId: string } => Boolean(x.teamId),
-  );
-  const toggleThird = (g: GroupLetter) => {
-    const next = state.thirds.includes(g)
-      ? state.thirds.filter((x) => x !== g)
-      : state.thirds.length < 8
-        ? [...state.thirds, g]
-        : state.thirds;
+  const thirdsCount = Object.keys(state.thirds).length;
+  // Elegir el tercero de un grupo (uno por grupo, 8 en total).
+  const toggleThird = (g: GroupLetter, teamId: string) => {
+    const cur = state.thirds[g];
+    const next = { ...state.thirds };
+    if (cur === teamId) delete next[g];
+    else if (cur) next[g] = teamId; // cambiar de equipo dentro del grupo
+    else if (thirdsCount < 8) next[g] = teamId;
+    else return; // ya hay 8
     persist({ ...state, thirds: next });
   };
-  const thirdsComplete = state.thirds.length === 8;
+  const thirdsComplete = thirdsCount === 8;
 
   const pickKo: PickFn = (matchId, teamId) => {
     if (!teamId) return;
@@ -195,7 +198,8 @@ export function Simulator({
         {step === "grupos" && (
           <>
             <p className="font-body text-xs text-grey-300">
-              En cada grupo, tocá los equipos en orden: 1.º, 2.º, 3.º (y 4.º). Necesitás al menos el podio.
+              En cada grupo, tocá el <strong className="text-line-white">1.º</strong> y el{" "}
+              <strong className="text-line-white">2.º</strong>. Los terceros se eligen en el paso siguiente.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {groups.map((gr) => {
@@ -247,28 +251,40 @@ export function Simulator({
         {step === "terceros" && (
           <>
             <p className="font-body text-xs text-grey-300">
-              Elegí los <strong className="text-line-white">8 mejores terceros</strong> que clasifican.{" "}
-              <span className="text-card-yellow">{state.thirds.length}/8</span>
+              De los equipos que quedaron 3.º/4.º, elegí los{" "}
+              <strong className="text-line-white">8 mejores terceros</strong> (uno por grupo).{" "}
+              <span className="text-card-yellow">{thirdsCount}/8</span>
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {thirdsPool.map(({ g, teamId }) => {
-                const t = teams[teamId];
-                const on = state.thirds.includes(g);
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {groups.map((gr) => {
+                const g = gr.group as GroupLetter;
+                const top2 = state.groupOrder[g] ?? [];
+                const remaining = gr.teams.filter((t) => !top2.includes(t.id));
+                const chosen = state.thirds[g];
                 return (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => toggleThird(g)}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2 border-pixel",
-                      on ? "bg-pitch-green text-ink" : "bg-scoreboard-black text-grey-300",
-                    )}
-                  >
-                    <span className="font-display text-[8px] w-8">G{g}</span>
-                    <Flag flag={t?.flag ?? null} size={18} />
-                    <span className="font-body text-sm flex-1 truncate text-left">{t?.name}</span>
-                    <span className="font-display text-[8px]">{on ? "✓" : ""}</span>
-                  </button>
+                  <div key={g} className="bg-scoreboard-black border-pixel-thick shadow-pixel-sm p-3">
+                    <div className="font-display text-[9px] tracking-[1px] text-line-white mb-2">GRUPO {g}</div>
+                    <div className="flex flex-col gap-1.5">
+                      {remaining.map((t) => {
+                        const on = chosen === t.id;
+                        return (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => toggleThird(g, t.id)}
+                            className={cn(
+                              "flex items-center gap-2 px-2 py-1.5 border-pixel",
+                              on ? "bg-pitch-green text-ink" : "bg-scoreboard-ink text-grey-300",
+                            )}
+                          >
+                            <Flag flag={t.flag} size={18} />
+                            <span className="font-body text-sm flex-1 truncate text-left">{t.name}</span>
+                            <span className="font-display text-[8px]">{on ? "✓ 3.º" : ""}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -277,7 +293,7 @@ export function Simulator({
                 ◂ Grupos
               </Button>
               <Button block onClick={() => setStep("llaves")} disabled={!thirdsComplete}>
-                {thirdsComplete ? "Siguiente: llaves ▸" : `Faltan ${8 - state.thirds.length}`}
+                {thirdsComplete ? "Siguiente: llaves ▸" : `Faltan ${8 - thirdsCount}`}
               </Button>
             </div>
           </>
@@ -313,17 +329,19 @@ export function Simulator({
               ))}
             </div>
 
-            {/* Desktop: dos mitades enfrentadas */}
-            <div className="hidden lg:flex justify-between items-stretch gap-2 overflow-x-auto">
-              <BracketColumn ids={half("R32", "L")} label="16avos" state={state} teams={teams} onPick={pickKo} />
-              <BracketColumn ids={half("R16", "L")} label="Octavos" state={state} teams={teams} onPick={pickKo} />
-              <BracketColumn ids={half("QF", "L")} label="Cuartos" state={state} teams={teams} onPick={pickKo} />
-              <BracketColumn ids={half("SF", "L")} label="Semis" state={state} teams={teams} onPick={pickKo} />
-              <BracketColumn ids={["F"]} label="Final" state={state} teams={teams} onPick={pickKo} />
-              <BracketColumn ids={half("SF", "R")} label="Semis" state={state} teams={teams} onPick={pickKo} />
-              <BracketColumn ids={half("QF", "R")} label="Cuartos" state={state} teams={teams} onPick={pickKo} />
-              <BracketColumn ids={half("R16", "R")} label="Octavos" state={state} teams={teams} onPick={pickKo} />
-              <BracketColumn ids={half("R32", "R")} label="16avos" state={state} teams={teams} onPick={pickKo} />
+            {/* Desktop: dos mitades enfrentadas (scroll horizontal si no entra) */}
+            <div className="hidden lg:block overflow-x-auto pb-2">
+              <div className="flex gap-3 w-max mx-auto">
+                <BracketColumn ids={half("R32", "L")} label="16avos" state={state} teams={teams} onPick={pickKo} />
+                <BracketColumn ids={half("R16", "L")} label="Octavos" state={state} teams={teams} onPick={pickKo} />
+                <BracketColumn ids={half("QF", "L")} label="Cuartos" state={state} teams={teams} onPick={pickKo} />
+                <BracketColumn ids={half("SF", "L")} label="Semis" state={state} teams={teams} onPick={pickKo} />
+                <BracketColumn ids={["F"]} label="Final" state={state} teams={teams} onPick={pickKo} />
+                <BracketColumn ids={half("SF", "R")} label="Semis" state={state} teams={teams} onPick={pickKo} />
+                <BracketColumn ids={half("QF", "R")} label="Cuartos" state={state} teams={teams} onPick={pickKo} />
+                <BracketColumn ids={half("R16", "R")} label="Octavos" state={state} teams={teams} onPick={pickKo} />
+                <BracketColumn ids={half("R32", "R")} label="16avos" state={state} teams={teams} onPick={pickKo} />
+              </div>
             </div>
 
             <div className="flex gap-2">

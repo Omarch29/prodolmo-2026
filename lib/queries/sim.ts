@@ -88,9 +88,11 @@ export async function getSimState(
   if (!sim) return emptyState();
   const { data } = await supabase.from("simulations").select("state").eq("id", sim.id).single();
   const raw = (data?.state ?? {}) as Partial<SimState>;
+  // `thirds` cambió de array (formato viejo) a objeto grupo->equipo; normalizar.
+  const thirds = raw.thirds && !Array.isArray(raw.thirds) ? raw.thirds : {};
   return {
     groupOrder: raw.groupOrder ?? {},
-    thirds: raw.thirds ?? [],
+    thirds,
     ko: raw.ko ?? {},
   };
 }
