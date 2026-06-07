@@ -70,7 +70,7 @@ export function Simulator({
         <div className="mx-4 flex items-start gap-2 bg-scoreboard-slate border-pixel px-3 py-2">
           <span className="text-lg">🧪</span>
           <p className="font-body text-xs text-grey-300">
-            Probá quién sale campeón completando el cuadro. <strong className="text-line-white">No afecta</strong> tus pronósticos del PRODE.
+            Probá quién sale campeón completando el cuadro. <strong className="text-line-white">No afecta</strong> tus pronósticos del PRODOLMO.
           </p>
         </div>
 

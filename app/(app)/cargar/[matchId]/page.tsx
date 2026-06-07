@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMatchForPrediction, getFriendPicks } from "@/lib/queries/cargar";
+import { getComments } from "@/lib/queries/comments";
 import { isPredictionEditable, arePredictionsVisible } from "@/lib/config";
 import { PredictionForm } from "@/components/cargar/PredictionForm";
 import { FriendPicks } from "@/components/cargar/FriendPicks";
+import { MatchComments } from "@/components/cargar/MatchComments";
 import { Countdown } from "@/components/ui/Countdown";
 import { Flag } from "@/components/ui/Flag";
 import type { TeamLite } from "@/lib/queries/dashboard";
@@ -39,6 +41,7 @@ export default async function CargarMatchPage({
   const finished = m.status === "finished";
   const playable = m.homeTeamId !== null && m.awayTeamId !== null;
   const friendPicks = visible ? await getFriendPicks(supabase, user.id, matchId) : [];
+  const comments = playable ? await getComments(supabase, matchId) : [];
 
   return (
     <div className="md:max-w-2xl md:mx-auto">
@@ -136,6 +139,9 @@ export default async function CargarMatchPage({
             reveal={finished}
           />
         )}
+
+        {/* Comentarios */}
+        {playable && <MatchComments matchId={m.id} comments={comments} />}
       </div>
     </div>
   );

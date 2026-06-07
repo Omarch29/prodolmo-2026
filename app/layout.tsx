@@ -26,7 +26,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "PRODE Mundial 2026",
+  title: "PRODOLMO · Mundial 2026",
   description: "Prode del Mundial 2026 — pronosticá, sumá puntos y ganale a tus amigos.",
 };
 

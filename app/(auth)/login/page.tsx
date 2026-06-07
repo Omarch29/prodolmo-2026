@@ -12,7 +12,7 @@ export default function LoginPage() {
   return (
     <div className="w-full max-w-sm bg-scoreboard-black border-pixel-thick shadow-pixel-lg p-6">
       <h1 className="font-display text-line-white text-sm flex items-center gap-2 mb-1">
-        <span>⚽</span> PRODE 2026
+        <span>⚽</span> PRODOLMO 2026
       </h1>
       <p className="font-body text-grey-300 text-sm mb-6">Ingresá para cargar tus pronósticos.</p>
 

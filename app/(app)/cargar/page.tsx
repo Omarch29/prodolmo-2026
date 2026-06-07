@@ -17,7 +17,7 @@ export default async function CargarPage() {
   ).length;
 
   return (
-    <div className="md:max-w-2xl md:mx-auto">
+    <div className="md:max-w-2xl lg:max-w-4xl md:mx-auto">
       <header className="flex items-center justify-between bg-scoreboard-black border-b-[4px] border-border px-4 py-3">
         <span className="font-display text-line-white text-sm flex items-center gap-2">⚽ CARGAR</span>
         <span className="font-display text-[8px] tracking-[0.5px] border-pixel px-2 py-1 bg-goal-orange text-ink">

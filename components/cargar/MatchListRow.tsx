@@ -29,7 +29,7 @@ export function MatchListRow({ m }: { m: CargarMatch }) {
   const ctaVariant = state === "pend" ? "primary" : state === "done" ? "secondary" : "ghost";
 
   return (
-    <div className="mx-4 bg-scoreboard-black border-pixel-thick shadow-pixel-sm p-3">
+    <div className="bg-scoreboard-black border-pixel-thick shadow-pixel-sm p-3">
       <div className="flex justify-between items-center mb-2">
         <span className="font-display text-[7px] tracking-[1px] text-grey-300">
           {m.stageName}

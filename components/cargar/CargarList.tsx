@@ -36,20 +36,29 @@ export function CargarList({ matches, defaultKey }: { matches: CargarMatch[]; de
     return [...map.entries()];
   }, [activeSection, sectionMatches]);
 
-  const visible = day ? sectionMatches.filter((m) => dayKey(m.kickoffAt) === day) : sectionMatches;
+  // En grupos siempre hay un día seleccionado (sin "Todos"); por defecto el primero.
+  const effectiveDay = activeSection?.isGroup
+    ? day && days.some(([k]) => k === day)
+      ? day
+      : days[0]?.[0] ?? null
+    : null;
+
+  const visible = effectiveDay
+    ? sectionMatches.filter((m) => dayKey(m.kickoffAt) === effectiveDay)
+    : sectionMatches;
 
   const selectSection = (k: string) => {
     setSectionKey(k);
     setDay(null);
   };
 
-  const tab = "font-display text-[8px] tracking-[1px] border-pixel px-2.5 py-2 whitespace-nowrap";
-  const chip = "font-body text-xs border-pixel px-2 py-1 whitespace-nowrap";
+  const tab = "font-display text-[8px] tracking-[1px] border-pixel px-2.5 py-2";
+  const chip = "font-body text-xs border-pixel px-2 py-1";
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Tabs por sección */}
-      <div className="flex gap-2 overflow-x-auto px-4 pb-1">
+      {/* Tabs por sección (envuelven a la fila de abajo si no entran) */}
+      <div className="flex flex-wrap gap-2 px-4">
         {sections.map((s) => (
           <button
             key={s.key}
@@ -64,20 +73,13 @@ export function CargarList({ matches, defaultKey }: { matches: CargarMatch[]; de
 
       {/* Subfiltro por día (solo grupos) */}
       {activeSection?.isGroup && days.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto px-4">
-          <button
-            type="button"
-            onClick={() => setDay(null)}
-            className={cn(chip, !day ? "bg-card-yellow text-ink" : "bg-scoreboard-black text-grey-300")}
-          >
-            Todos
-          </button>
+        <div className="flex flex-wrap gap-2 px-4">
           {days.map(([k, label]) => (
             <button
               key={k}
               type="button"
               onClick={() => setDay(k)}
-              className={cn(chip, day === k ? "bg-card-yellow text-ink" : "bg-scoreboard-black text-grey-300")}
+              className={cn(chip, effectiveDay === k ? "bg-card-yellow text-ink" : "bg-scoreboard-black text-grey-300")}
             >
               {label}
             </button>
@@ -85,13 +87,17 @@ export function CargarList({ matches, defaultKey }: { matches: CargarMatch[]; de
         </div>
       )}
 
-      {/* Lista */}
+      {/* Lista: 1 columna en mobile, varias en desktop */}
       {visible.length === 0 ? (
         <div className="mx-4 bg-scoreboard-slate border-pixel-thick shadow-pixel p-6 font-body text-sm text-grey-300">
           No hay partidos en esta sección.
         </div>
       ) : (
-        visible.map((m) => <MatchListRow key={m.id} m={m} />)
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 px-4">
+          {visible.map((m) => (
+            <MatchListRow key={m.id} m={m} />
+          ))}
+        </div>
       )}
     </div>
   );
