@@ -70,6 +70,8 @@ export function normalizeTeam(t: FdTeam): NormalizedTeam {
   };
 }
 
+export type RefereeInfo = { name: string; role: string | null; nationality: string | null };
+
 export type NormalizedMatch = {
   externalId: number;
   stageSort: number | null;
@@ -81,7 +83,14 @@ export type NormalizedMatch = {
   status: MatchStatus;
   homeScore: number | null;
   awayScore: number | null;
+  referees: RefereeInfo[];
 };
+
+export function normalizeReferees(m: FdMatch): RefereeInfo[] {
+  return (m.referees ?? [])
+    .filter((r) => r.name)
+    .map((r) => ({ name: r.name as string, role: r.type, nationality: r.nationality }));
+}
 
 export function normalizeMatch(m: FdMatch): NormalizedMatch {
   return {
@@ -95,5 +104,6 @@ export function normalizeMatch(m: FdMatch): NormalizedMatch {
     status: mapStatus(m.status),
     homeScore: m.score?.fullTime?.home ?? null,
     awayScore: m.score?.fullTime?.away ?? null,
+    referees: normalizeReferees(m),
   };
 }

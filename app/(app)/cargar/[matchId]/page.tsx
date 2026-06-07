@@ -9,7 +9,17 @@ import { FriendPicks } from "@/components/cargar/FriendPicks";
 import { MatchComments } from "@/components/cargar/MatchComments";
 import { Countdown } from "@/components/ui/Countdown";
 import { Flag } from "@/components/ui/Flag";
+import { countryFlag } from "@/lib/flags/country";
 import type { TeamLite } from "@/lib/queries/dashboard";
+
+const REFEREE_ROLE: Record<string, string> = {
+  REFEREE: "Árbitro",
+  ASSISTANT_REFEREE_N1: "Asistente 1",
+  ASSISTANT_REFEREE_N2: "Asistente 2",
+  FOURTH_OFFICIAL: "Cuarto árbitro",
+  VIDEO_ASSISTANT_REFEREE_N1: "VAR",
+  VIDEO_ASSISTANT_REFEREE_N2: "AVAR",
+};
 
 function Team({ t }: { t: TeamLite }) {
   return (
@@ -137,6 +147,34 @@ export default async function CargarMatchPage({
             title={finished ? "Análisis del grupo · quién sumó" : "Pronósticos del grupo"}
             reveal={finished}
           />
+        )}
+
+        {/* Árbitros (se completan cuando la FIFA los asigna) */}
+        {m.referees.length > 0 && (
+          <section className="mx-4 bg-scoreboard-black border-pixel-thick shadow-pixel-sm">
+            <div className="font-display text-[9px] tracking-[1px] text-line-white px-3 py-2 border-b-[3px] border-border">
+              👨‍⚖️ ÁRBITROS
+            </div>
+            <ul>
+              {m.referees.map((r, i) => (
+                <li
+                  key={i}
+                  className="flex items-center gap-2 px-3 py-2 border-b-[2px] border-scoreboard-slate last:border-b-0"
+                >
+                  <span className="font-display text-[7px] tracking-[0.5px] text-grey-400 w-20 shrink-0">
+                    {(r.role && REFEREE_ROLE[r.role]) ?? "Árbitro"}
+                  </span>
+                  <span className="font-body text-sm text-line-white flex-1 truncate">{r.name}</span>
+                  {r.nationality && (
+                    <span className="font-body text-xs text-grey-300 flex items-center gap-1">
+                      <span className="text-base">{countryFlag(r.nationality) ?? "🏳️"}</span>
+                      {r.nationality}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
         {/* Comentarios */}

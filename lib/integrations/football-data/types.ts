@@ -25,6 +25,7 @@ export type FdMatch = {
   homeTeam: FdMatchTeam;
   awayTeam: FdMatchTeam;
   score: { fullTime: { home: number | null; away: number | null } };
+  referees?: { name: string | null; type: string | null; nationality: string | null }[];
 };
 
 export type FdMatchesResponse = { matches: FdMatch[] };

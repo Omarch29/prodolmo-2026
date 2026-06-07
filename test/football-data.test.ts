@@ -87,6 +87,7 @@ describe("normalizeMatch", () => {
       status: "finished",
       homeScore: 2,
       awayScore: 1,
+      referees: [],
     });
   });
 

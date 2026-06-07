@@ -201,6 +201,7 @@ export type Database = {
           id: string
           kickoff_at: string
           matchday: number | null
+          referees: Json
           stage_id: string
           status: Database["public"]["Enums"]["match_status"]
           venue: string | null
@@ -217,6 +218,7 @@ export type Database = {
           id?: string
           kickoff_at: string
           matchday?: number | null
+          referees?: Json
           stage_id: string
           status?: Database["public"]["Enums"]["match_status"]
           venue?: string | null
@@ -233,6 +235,7 @@ export type Database = {
           id?: string
           kickoff_at?: string
           matchday?: number | null
+          referees?: Json
           stage_id?: string
           status?: Database["public"]["Enums"]["match_status"]
           venue?: string | null

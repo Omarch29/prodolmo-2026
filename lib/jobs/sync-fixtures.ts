@@ -68,6 +68,7 @@ export async function syncFixtures(
       status: n.status,
       home_score: n.homeScore,
       away_score: n.awayScore,
+      referees: n.referees,
     });
   }
 
