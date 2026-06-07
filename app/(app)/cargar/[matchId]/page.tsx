@@ -62,7 +62,7 @@ export default async function CargarMatchPage({
 
       <div className="flex flex-col gap-5 py-5">
         {/* Partido */}
-        <div className="mx-4 bg-bg-field border-pixel-thick shadow-pixel">
+        <div className="mx-4 ds-pitch border-pixel-thick shadow-pixel">
           <div className="flex items-center justify-around py-5 px-3">
             <Team t={m.home} />
             {finished ? (
