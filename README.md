@@ -119,6 +119,7 @@ y corré `npm run sync:fixtures`.
 |---|---|
 | `npm run dev` / `build` / `start` | Desarrollo / build / producción |
 | `npm run typecheck` · `lint` · `test` | `tsc --noEmit` · ESLint · Vitest |
+| `npm run e2e` · `e2e:open` · `e2e:ci` | Tests E2E (Cypress) |
 | `npm run db:start` / `db:stop` / `db:reset` | Supabase local |
 | `npm run db:types` | Genera los tipos de la BD |
 | `npm run seed:users` · `seed:demo` | Usuarios del grupo · datos de prueba |
@@ -128,8 +129,10 @@ y corré `npm run sync:fixtures`.
 ## ✅ Calidad
 
 `npm run typecheck`, `npm run lint`, `npm run test` y `npm run build` en verde.
-Los tests cubren la lógica pura más propensa a romperse (puntaje/ranking, reglas
-de cierre, cuadro del simulador, mapeos de la API y validaciones Zod).
+Los **tests unitarios** (Vitest) cubren la lógica pura más propensa a romperse
+(puntaje/ranking, reglas de cierre, cuadro del simulador, mapeos de la API y
+validaciones Zod). Los **tests E2E** (Cypress) cubren login y la navegación por
+las pantallas (`npm run e2e:ci` con Supabase corriendo).
 
 ## ☁️ Deploy
 
