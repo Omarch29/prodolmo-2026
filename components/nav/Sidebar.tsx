@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 export function Sidebar({ displayName }: { displayName: string }) {
   const pathname = usePathname();
   return (
-    <aside className="hidden md:flex md:flex-col w-56 shrink-0 min-h-screen gap-6 p-4 bg-scoreboard-black border-r-[4px] border-border">
+    <aside className="hidden md:flex md:flex-col w-56 shrink-0 md:sticky md:top-0 h-screen gap-6 p-4 bg-scoreboard-black border-r-[4px] border-border">
       <div className="font-display text-line-white text-sm flex items-center gap-2">
         <span>⚽</span> PRODE
       </div>
