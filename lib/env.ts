@@ -32,6 +32,8 @@ const serverSchema = z.object({
   GEMINI_API_KEY: optionalSecret,
   // Secreto para autorizar el cron del job de mensajes diarios.
   CRON_SECRET: optionalSecret,
+  // Token de football-data.org para sincronizar fixture/resultados.
+  FOOTBALL_DATA_TOKEN: optionalSecret,
 });
 
 type ServerEnv = z.infer<typeof serverSchema>;

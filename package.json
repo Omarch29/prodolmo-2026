@@ -15,6 +15,7 @@
     "seed:users": "tsx scripts/seed-users.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
     "job:daily": "tsx scripts/run-daily-messages.ts",
+    "sync:fixtures": "tsx scripts/sync-fixtures.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },

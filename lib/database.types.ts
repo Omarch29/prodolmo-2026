@@ -194,6 +194,7 @@ export type Database = {
           away_score: number | null
           away_team_id: string | null
           decided_winner_team_id: string | null
+          external_id: number | null
           group_id: string | null
           home_score: number | null
           home_team_id: string | null
@@ -209,6 +210,7 @@ export type Database = {
           away_score?: number | null
           away_team_id?: string | null
           decided_winner_team_id?: string | null
+          external_id?: number | null
           group_id?: string | null
           home_score?: number | null
           home_team_id?: string | null
@@ -224,6 +226,7 @@ export type Database = {
           away_score?: number | null
           away_team_id?: string | null
           decided_winner_team_id?: string | null
+          external_id?: number | null
           group_id?: string | null
           home_score?: number | null
           home_team_id?: string | null
@@ -507,6 +510,7 @@ export type Database = {
       teams: {
         Row: {
           code: string
+          external_id: number | null
           flag_url: string | null
           group_id: string | null
           id: string
@@ -515,6 +519,7 @@ export type Database = {
         }
         Insert: {
           code: string
+          external_id?: number | null
           flag_url?: string | null
           group_id?: string | null
           id?: string
@@ -523,6 +528,7 @@ export type Database = {
         }
         Update: {
           code?: string
+          external_id?: number | null
           flag_url?: string | null
           group_id?: string | null
           id?: string

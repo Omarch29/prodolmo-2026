@@ -65,6 +65,7 @@ Abrí http://localhost:3000 e ingresá con uno de los emails sembrados
 | `npm run db:types` | Genera `lib/database.types.ts` desde el esquema |
 | `npm run seed:users` | Crea los usuarios del grupo (service-role) |
 | `npm run job:daily` | Corre el job de mensajes diarios contra la BD local |
+| `npm run sync:fixtures` | Sincroniza fixture/resultados desde football-data.org |
 
 ## Base de datos
 
@@ -91,6 +92,19 @@ scripts/        # seed-users.ts
 design/         # mockups + design system pixel-art (referencia)
 docs/           # spec funcional + técnica
 ```
+
+## Resultados reales (football-data.org)
+
+El fixture y los resultados se pueden traer de [football-data.org](https://www.football-data.org)
+(competición FIFA World Cup, code `WC`).
+
+1. Registrate gratis y poné el token en `.env.local`: `FOOTBALL_DATA_TOKEN="..."`.
+2. Sincronizá: `npm run sync:fixtures` (importa selecciones + fixture; actualiza
+   marcador/estado de los partidos → al finalizar, el trigger recalcula los puntos).
+3. En producción corre por cron (`vercel.json` → `/api/cron/sync-fixtures`).
+
+Es idempotente (upsert por `external_id`). Sin token, la app usa el seed/demo.
+> El esquema mapea cualquier proveedor con un cambio acotado (`lib/integrations/`).
 
 ## Deploy (pendiente)
 

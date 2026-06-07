@@ -58,6 +58,17 @@ sistema de puntos, pantallas, reglas).
   marcadores), `font-body` (Space Grotesk, UI). Inyectadas vía `next/font`.
 - Referencia visual: `design/` (mockups + estilos de las pantallas).
 
+## Integraciones externas
+- Resultados/fixture desde **football-data.org** (`lib/integrations/football-data/`).
+  Cliente core sin `server-only` (reusable en scripts) + wrapper server-only que
+  lee el token. El **mapeo** (API → esquema) es puro y testeado.
+- El **sync** (`lib/jobs/sync-fixtures.ts`) hace upsert por `external_id`/`code`;
+  al pasar un partido a finished con marcador, el trigger recalcula puntos.
+  Inyectá el `client` (DI) para testear/mockear sin red.
+- Cron en `vercel.json` (`/api/cron/sync-fixtures` y `/api/cron/daily-messages`).
+  Nota: en Vercel **Hobby** los cron corren ~1 vez/día; para resultados más
+  frecuentes, disparar manualmente o usar Pro.
+
 ## Tests
 - **Vitest** para lógica pura (sin DB ni red), en `test/*.test.ts`.
 - Patrón: extraer la lógica con miga a módulos puros y testearla ahí
