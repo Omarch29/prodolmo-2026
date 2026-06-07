@@ -6,15 +6,17 @@ import { isPredictionEditable } from "@/lib/config";
 import { cn } from "@/lib/utils";
 import type { CargarMatch } from "@/lib/queries/cargar";
 
-type RowState = "pend" | "done" | "locked" | "live";
+type RowState = "tbd" | "pend" | "done" | "locked" | "live";
 
 function resolveState(m: CargarMatch): RowState {
+  if (!m.playable) return "tbd";
   if (m.status === "in_progress") return "live";
   if (!isPredictionEditable(new Date(m.kickoffAt))) return "locked";
   return m.myPred ? "done" : "pend";
 }
 
 const STATE_META: Record<RowState, { chip: string; chipClass: string; cta: string }> = {
+  tbd: { chip: "● POR DEFINIR", chipClass: "bg-scoreboard-slate text-grey-300", cta: "" },
   pend: { chip: "● SIN CARGAR", chipClass: "bg-goal-orange text-ink", cta: "Cargar" },
   done: { chip: "✓ CARGADO", chipClass: "bg-pitch-green-light text-ink", cta: "Editar" },
   locked: { chip: "🔒 CERRADO", chipClass: "bg-grey-300 text-ink", cta: "Ver" },
@@ -56,9 +58,11 @@ export function MatchListRow({ m }: { m: CargarMatch }) {
 
       <div className="flex items-center justify-between gap-2 mt-3">
         <Countdown target={m.kickoffAt} />
-        <Link href={`/cargar/${m.id}`} className={buttonClassName({ size: "sm", variant: ctaVariant })}>
-          {meta.cta}
-        </Link>
+        {meta.cta && (
+          <Link href={`/cargar/${m.id}`} className={buttonClassName({ size: "sm", variant: ctaVariant })}>
+            {meta.cta}
+          </Link>
+        )}
       </div>
     </div>
   );

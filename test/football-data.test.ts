@@ -37,6 +37,7 @@ describe("mapStageSortOrder", () => {
 describe("mapGroupLetter", () => {
   it("extrae la letra del grupo", () => {
     expect(mapGroupLetter("GROUP A")).toBe("A");
+    expect(mapGroupLetter("GROUP_A")).toBe("A"); // football-data usa guión bajo
     expect(mapGroupLetter("group l")).toBe("L");
   });
   it("null en eliminatorias o formato raro", () => {

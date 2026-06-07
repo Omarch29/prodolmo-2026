@@ -12,6 +12,7 @@ function m(partial: Partial<CargarMatch>): CargarMatch {
     matchday: 1,
     home: { name: "A", code: "A", flag: null },
     away: { name: "B", code: "B", flag: null },
+    playable: true,
     myPred: null,
     ...partial,
   };

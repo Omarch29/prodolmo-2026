@@ -40,6 +40,10 @@ export async function savePrediction(
     .single();
   if (!match) return { error: "Partido no encontrado." };
 
+  if (!match.home_team_id || !match.away_team_id) {
+    return { error: "Todavía no están definidos los equipos de este partido." };
+  }
+
   if (match.status !== "scheduled" || !isPredictionEditable(new Date(match.kickoff_at))) {
     return { error: "La carga de este partido está cerrada." };
   }

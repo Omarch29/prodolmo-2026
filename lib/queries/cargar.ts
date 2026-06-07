@@ -13,6 +13,7 @@ export type CargarMatch = {
   matchday: number | null;
   home: TeamLite;
   away: TeamLite;
+  playable: boolean; // ambos equipos definidos (no es un cruce "por definir")
   myPred: { home: number; away: number } | null;
 };
 
@@ -51,6 +52,7 @@ export async function getCargarMatches(
     matchday: m.matchday,
     home: toTeam(m.home_team),
     away: toTeam(m.away_team),
+    playable: !!m.home_team && !!m.away_team,
     myPred: predMap.get(m.id) ?? null,
   }));
 }

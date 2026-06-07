@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { savePrediction, type SavePredictionState } from "@/actions/predictions";
 import { Stepper } from "@/components/ui/Stepper";
 import { Button } from "@/components/ui/Button";
+import { Flag } from "@/components/ui/Flag";
 import { cn } from "@/lib/utils";
 import type { TeamLite } from "@/lib/queries/dashboard";
 
@@ -67,7 +68,7 @@ export function PredictionForm({
                     : "bg-scoreboard-slate text-line-white",
                 )}
               >
-                <span className="text-base">{t.flag ?? "⚽"}</span> {t.code}
+                <Flag flag={t.flag} size={18} /> {t.code}
               </button>
             ))}
           </div>

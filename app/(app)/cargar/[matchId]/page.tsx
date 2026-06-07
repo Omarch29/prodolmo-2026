@@ -37,6 +37,7 @@ export default async function CargarMatchPage({
   const editable = m.status === "scheduled" && isPredictionEditable(kickoff);
   const visible = arePredictionsVisible(kickoff);
   const finished = m.status === "finished";
+  const playable = m.homeTeamId !== null && m.awayTeamId !== null;
   const friendPicks = visible ? await getFriendPicks(supabase, user.id, matchId) : [];
 
   return (
@@ -46,7 +47,9 @@ export default async function CargarMatchPage({
           ◂
         </Link>
         <span className="font-display text-line-white text-sm flex-1 truncate">{m.stageName}</span>
-        {editable ? (
+        {!playable ? (
+          <span className="font-display text-[8px] border-pixel px-2 py-1 bg-scoreboard-slate text-grey-300">POR DEFINIR</span>
+        ) : editable ? (
           <span className="font-display text-[8px] border-pixel px-2 py-1 bg-goal-orange text-ink">EDITABLE</span>
         ) : finished ? (
           <span className="font-display text-[8px] border-pixel px-2 py-1 bg-pitch-green-light text-ink">✓ JUGADO</span>
@@ -86,7 +89,15 @@ export default async function CargarMatchPage({
         )}
 
         {/* Carga / vista */}
-        {editable ? (
+        {!playable ? (
+          <div className="mx-4 flex items-start gap-2 bg-scoreboard-slate border-pixel px-3 py-2">
+            <span className="text-lg">⏳</span>
+            <p className="font-body text-xs text-grey-300">
+              Todavía no están definidos los equipos de este cruce. Vas a poder cargar tu
+              pronóstico cuando se sepan (al cerrarse la ronda anterior).
+            </p>
+          </div>
+        ) : editable ? (
           <PredictionForm
             matchId={m.id}
             home={m.home}

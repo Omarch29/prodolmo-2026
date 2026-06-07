@@ -44,11 +44,10 @@ export function mapStageSortOrder(apiStage: string): number | null {
   }
 }
 
-/** "GROUP A" -> "A"; null en eliminatorias. */
+/** "GROUP A" / "GROUP_A" -> "A"; null en eliminatorias. */
 export function mapGroupLetter(apiGroup: string | null): string | null {
   if (!apiGroup) return null;
-  const parts = apiGroup.trim().toUpperCase().split(/\s+/);
-  const last = parts[parts.length - 1];
+  const last = apiGroup.trim().toUpperCase().split(/[\s_]+/).pop();
   return last && /^[A-L]$/.test(last) ? last : null;
 }
 
