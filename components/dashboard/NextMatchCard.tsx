@@ -12,9 +12,9 @@ function Team({ t }: { t: TeamLite }) {
   );
 }
 
-export function NextMatchCard({ match }: { match: NextMatch }) {
+export function NextMatchCard({ match, bare = false }: { match: NextMatch; bare?: boolean }) {
   return (
-    <div className="mx-4 bg-bg-field border-pixel-thick shadow-pixel">
+    <div className={`${bare ? "" : "mx-4"} bg-bg-field border-pixel-thick shadow-pixel`}>
       <div className="flex justify-between items-center bg-scoreboard-ink px-3 py-2 font-display text-[8px] tracking-[1.5px] text-line-white">
         <span>⚽ PRÓXIMO PARTIDO</span>
         <span className="text-pitch-green-lighter">{match.stageName}</span>

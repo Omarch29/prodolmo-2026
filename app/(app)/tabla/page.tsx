@@ -13,7 +13,7 @@ export default async function TablaPage() {
   const me = standings.find((s) => s.userId === user.id);
 
   return (
-    <div>
+    <div className="md:max-w-2xl md:mx-auto">
       <header className="flex items-center justify-between bg-scoreboard-black border-b-[4px] border-border px-4 py-3">
         <span className="font-display text-line-white text-sm flex items-center gap-2">🏆 TABLA</span>
         <span className="font-mono text-2xl text-ink bg-card-yellow border-pixel shadow-pixel-xs px-2.5 leading-relaxed">

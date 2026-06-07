@@ -21,15 +21,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const displayName = profile?.display_name ?? "Jugador";
 
   return (
-    // En desktop el bloque (sidebar + panel) se centra y acota, en vez de
-    // estirarse al 100% del ancho. El contenido (mobile-first) va en columna.
-    <div className="mx-auto flex min-h-screen max-w-4xl">
+    // En desktop: sidebar fijo + área de contenido ancha (el bloque se acota y
+    // centra en pantallas muy grandes). Cada pantalla maneja su propio layout.
+    <div className="mx-auto flex min-h-screen w-full max-w-6xl">
       <Sidebar displayName={displayName} />
-      <main className="flex-1 pb-20 md:pb-0 md:flex md:justify-center">
-        <div className="w-full max-w-md bg-scoreboard-black md:min-h-screen md:border-x-[3px] md:border-border">
-          {children}
-        </div>
-      </main>
+      <main className="flex-1 min-w-0 pb-20 md:pb-0">{children}</main>
       <BottomNav />
     </div>
   );

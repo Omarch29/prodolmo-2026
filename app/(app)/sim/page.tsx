@@ -16,5 +16,9 @@ export default async function SimPage() {
   ]);
   const picks = sim ? await getSimPicks(supabase, sim.id) : {};
 
-  return <Simulator slots={slots} teams={teams} initialPicks={picks} />;
+  return (
+    <div className="md:max-w-2xl md:mx-auto">
+      <Simulator slots={slots} teams={teams} initialPicks={picks} />
+    </div>
+  );
 }

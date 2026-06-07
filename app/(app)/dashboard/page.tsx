@@ -4,6 +4,7 @@ import { getNextMatch, getDailyMessages } from "@/lib/queries/dashboard";
 import { HeroHeader } from "@/components/dashboard/HeroHeader";
 import { NextMatchCard } from "@/components/dashboard/NextMatchCard";
 import { DailyMessages } from "@/components/dashboard/DailyMessages";
+import { DesktopDashboard } from "@/components/dashboard/DesktopDashboard";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -19,27 +20,38 @@ export default async function DashboardPage() {
   ]);
 
   const me = standings.find((s) => s.userId === user.id);
+  const displayName = me?.displayName ?? "Jugador";
+  const points = me?.points ?? 0;
+  const rank = me?.rank ?? standings.length;
 
   return (
-    <div>
-      <HeroHeader
-        displayName={me?.displayName ?? "Jugador"}
-        points={me?.points ?? 0}
-        rank={me?.rank ?? standings.length}
-        playerCount={standings.length}
-      />
-
-      <div className="flex flex-col gap-5 py-5">
-        {nextMatch ? (
-          <NextMatchCard match={nextMatch} />
-        ) : (
-          <div className="mx-4 bg-scoreboard-slate border-pixel-thick shadow-pixel p-6 font-body text-sm text-grey-300">
-            No hay próximos partidos cargados en el fixture.
-          </div>
-        )}
-
-        <DailyMessages messages={messages} />
+    <>
+      {/* Mobile */}
+      <div className="md:hidden">
+        <HeroHeader displayName={displayName} points={points} rank={rank} playerCount={standings.length} />
+        <div className="flex flex-col gap-5 py-5">
+          {nextMatch ? (
+            <NextMatchCard match={nextMatch} />
+          ) : (
+            <div className="mx-4 bg-scoreboard-slate border-pixel-thick shadow-pixel p-6 font-body text-sm text-grey-300">
+              No hay próximos partidos cargados en el fixture.
+            </div>
+          )}
+          <DailyMessages messages={messages} />
+        </div>
       </div>
-    </div>
+
+      {/* Desktop */}
+      <DesktopDashboard
+        displayName={displayName}
+        points={points}
+        rank={rank}
+        playerCount={standings.length}
+        nextMatch={nextMatch}
+        messages={messages}
+        standings={standings}
+        currentUserId={user.id}
+      />
+    </>
   );
 }

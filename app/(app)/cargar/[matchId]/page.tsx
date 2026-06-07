@@ -39,7 +39,7 @@ export default async function CargarMatchPage({
   const friendPicks = visible ? await getFriendPicks(supabase, user.id, matchId) : [];
 
   return (
-    <div>
+    <div className="md:max-w-2xl md:mx-auto">
       <header className="flex items-center gap-3 bg-scoreboard-black border-b-[4px] border-border px-4 py-3">
         <Link href="/cargar" className="font-display text-line-white text-xs">
           ◂

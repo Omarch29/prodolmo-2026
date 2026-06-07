@@ -33,7 +33,7 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
   const isMe = id === user.id;
 
   return (
-    <div>
+    <div className="md:max-w-2xl md:mx-auto">
       <header className="flex items-center gap-3 bg-scoreboard-black border-b-[4px] border-border px-4 py-3">
         <Link href="/tabla" className="font-display text-line-white text-xs">
           ◂
