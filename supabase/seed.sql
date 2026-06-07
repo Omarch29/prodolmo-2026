@@ -38,46 +38,12 @@ insert into public.teams (name, code, flag_url, group_id) values
   ('Senegal',        'SEN', '🇸🇳', (select id from public.groups where name = 'C')),
   ('Alemania',       'GER', '🇩🇪', (select id from public.groups where name = 'D')),
   ('Portugal',       'POR', '🇵🇹', (select id from public.groups where name = 'D')),
-  ('Uruguay',        'URU', '🇺🇾', (select id from public.groups where name = 'D')),
+  ('Uruguay',        'URY', '🇺🇾', (select id from public.groups where name = 'D')),
   ('Países Bajos',   'NED', '🇳🇱', (select id from public.groups where name = 'D'));
 
--- ---- Fixture demo (kickoffs relativos a now()) ----
--- Helper local: stage de grupos y group_id A.
-with grupos_stage as (select id from public.stages where sort_order = 1)
-insert into public.matches
-  (stage_id, group_id, matchday, home_team_id, away_team_id, kickoff_at, venue, status, home_score, away_score)
-values
-  -- Partido ya finalizado (sirve para probar el trigger de puntos)
-  ((select id from grupos_stage),
-   (select id from public.groups where name = 'A'), 1,
-   (select id from public.teams where code = 'ARG'),
-   (select id from public.teams where code = 'MEX'),
-   now() - interval '2 days', 'Estadio Azteca', 'finished', 2, 1),
-
-  -- Próximos partidos (scheduled)
-  ((select id from grupos_stage),
-   (select id from public.groups where name = 'A'), 2,
-   (select id from public.teams where code = 'CAN'),
-   (select id from public.teams where code = 'JPN'),
-   now() + interval '3 hours', 'BMO Field', 'scheduled', null, null),
-
-  ((select id from grupos_stage),
-   (select id from public.groups where name = 'B'), 1,
-   (select id from public.teams where code = 'BRA'),
-   (select id from public.teams where code = 'ESP'),
-   now() + interval '1 day', 'MetLife Stadium', 'scheduled', null, null),
-
-  ((select id from grupos_stage),
-   (select id from public.groups where name = 'C'), 1,
-   (select id from public.teams where code = 'FRA'),
-   (select id from public.teams where code = 'ENG'),
-   now() + interval '2 days', 'SoFi Stadium', 'scheduled', null, null),
-
-  ((select id from grupos_stage),
-   (select id from public.groups where name = 'D'), 1,
-   (select id from public.teams where code = 'GER'),
-   (select id from public.teams where code = 'POR'),
-   now() + interval '3 days', 'AT&T Stadium', 'scheduled', null, null);
+-- NOTA: el fixture y los resultados reales se traen con `npm run sync:fixtures`
+-- (football-data.org). No sembramos partidos demo acá para no mezclar datos
+-- falsos con los reales. Para datos de prueba en dev: `npm run seed:demo`.
 
 -- ============================================================
 -- Bracket de eliminación para el SIMULADOR (demo: desde Cuartos).
@@ -99,4 +65,4 @@ insert into public.bracket_slots (slot, stage_id, sort_order, feeds_slot, feeds_
   ('QF-3', (select id from public.stages where sort_order = 4), 82, 'SF-2', 'home',
    (select id from public.teams where code = 'ENG'), (select id from public.teams where code = 'POR')),
   ('QF-4', (select id from public.stages where sort_order = 4), 83, 'SF-2', 'away',
-   (select id from public.teams where code = 'GER'), (select id from public.teams where code = 'URU'));
+   (select id from public.teams where code = 'GER'), (select id from public.teams where code = 'URY'));
