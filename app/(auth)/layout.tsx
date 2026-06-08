@@ -11,11 +11,18 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   if (user) redirect("/dashboard");
 
   return (
-    // Fondo: imagen centrada, lo más grande posible sin recortar (contain).
-    // El fondo oscuro se funde con la viñeta de la imagen en celular y desktop.
+    // Fondo: imagen (festejo) corrida un poco a la izquierda y abajo para que
+    // no quede tapada por el login, sobre las barras verdes de cancha.
     <div
-      className="min-h-screen flex items-center justify-center p-4 bg-scoreboard-ink bg-center bg-no-repeat bg-contain"
-      style={{ backgroundImage: "url('/login-bg.png')" }}
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        backgroundColor: "var(--color-pitch-green-dark)",
+        backgroundImage:
+          "url('/login-bg.png'), repeating-linear-gradient(90deg, rgba(0,0,0,0.10) 0 48px, rgba(255,255,255,0.05) 48px 96px)",
+        backgroundRepeat: "no-repeat, repeat",
+        backgroundSize: "contain, auto",
+        backgroundPosition: "22% 82%, center",
+      }}
     >
       {children}
     </div>
