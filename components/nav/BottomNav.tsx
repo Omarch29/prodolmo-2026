@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 export function BottomNav() {
   const pathname = usePathname();
   return (
-    <nav className="md:hidden fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 bg-scoreboard-black border-t-[4px] border-border">
+    <nav className="md:hidden fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 bg-scoreboard-black border-t-[4px] border-border">
       {NAV_ITEMS.map((it) => {
         const active = pathname.startsWith(it.href);
         return (

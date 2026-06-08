@@ -6,6 +6,8 @@ declare global {
     interface Chainable {
       /** Login por la UI, cacheado entre tests con cy.session. */
       login(email?: string, password?: string): Chainable<void>;
+      /** Cierra el modal de "elegí tu campeón" si está visible. */
+      dismissChampion(): Chainable<void>;
     }
   }
 }
@@ -20,6 +22,14 @@ Cypress.Commands.add("login", (email?: string, password?: string) => {
     cy.get('input[name="password"]').type(pass, { log: false });
     cy.contains("button", "Ingresar").click();
     cy.url().should("include", "/dashboard");
+  });
+});
+
+Cypress.Commands.add("dismissChampion", () => {
+  cy.get("body", { log: false }).then(($b) => {
+    if ($b.find("button:contains('Más tarde')").length) {
+      cy.contains("button", "Más tarde").click();
+    }
   });
 });
 
