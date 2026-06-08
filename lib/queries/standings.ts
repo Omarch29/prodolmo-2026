@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { rankStandings, type StandingAggregate, type RankedStanding } from "@/lib/standings/rank";
+import { getActualChampion, CHAMPION_BONUS } from "@/lib/queries/champion";
 
 export type StandingRow = RankedStanding;
 
@@ -20,8 +21,8 @@ function yesterdayInTz(now: Date = new Date()): string {
 export async function getStandings(
   supabase: SupabaseClient<Database>,
 ): Promise<StandingRow[]> {
-  const [{ data: profiles }, { data: preds }, { data: ySnaps }] = await Promise.all([
-    supabase.from("profiles").select("id, display_name, avatar_url, es_bot"),
+  const [{ data: profiles }, { data: preds }, { data: ySnaps }, actualChampion] = await Promise.all([
+    supabase.from("profiles").select("id, display_name, avatar_url, es_bot, champion_team_id"),
     supabase
       .from("predictions")
       .select(
@@ -29,19 +30,21 @@ export async function getStandings(
       )
       .eq("match.status", "finished"),
     supabase.from("standings_snapshots").select("user_id, posicion").eq("date", yesterdayInTz()),
+    getActualChampion(supabase),
   ]);
 
   const posAyer = new Map((ySnaps ?? []).map((s) => [s.user_id, s.posicion]));
 
-  // Acumular puntos/plenos/aciertos por usuario.
+  // Acumular puntos/plenos/aciertos por usuario (+20 si acertó el campeón).
   const agg = new Map<string, StandingAggregate>();
   for (const p of profiles ?? []) {
+    const championBonus = actualChampion && p.champion_team_id === actualChampion ? CHAMPION_BONUS : 0;
     agg.set(p.id, {
       userId: p.id,
       displayName: p.display_name,
       avatarUrl: p.avatar_url,
       esBot: p.es_bot,
-      points: 0,
+      points: championBonus,
       plenos: 0,
       aciertos: 0,
     });

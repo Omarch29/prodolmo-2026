@@ -339,6 +339,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          champion_team_id: string | null
           created_at: string
           display_name: string
           es_bot: boolean
@@ -348,6 +349,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          champion_team_id?: string | null
           created_at?: string
           display_name: string
           es_bot?: boolean
@@ -357,6 +359,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          champion_team_id?: string | null
           created_at?: string
           display_name?: string
           es_bot?: boolean
@@ -364,7 +367,15 @@ export type Database = {
           timezone?: string
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_champion_team_id_fkey"
+            columns: ["champion_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       simulation_picks: {
         Row: {

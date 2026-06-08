@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import type { RewriteItem } from "@/lib/gemini/messages-prompt";
+import { getActualChampion, CHAMPION_BONUS } from "@/lib/queries/champion";
 
 type DailyMessageType = Database["public"]["Enums"]["daily_message_type"];
 type MessageInsert = Database["public"]["Tables"]["daily_messages"]["Insert"];
@@ -26,7 +27,7 @@ export type RunOptions = {
   rewrite?: (items: RewriteItem[]) => Promise<string[]>;
 };
 
-type ProfileRow = { id: string; display_name: string };
+type ProfileRow = { id: string; display_name: string; champion_team_id: string | null };
 type MatchRow = {
   id: string;
   kickoff_at: string;
@@ -50,9 +51,12 @@ function computeStandings(
   profiles: ProfileRow[],
   preds: PredRow[],
   finishedIds: Set<string>,
+  actualChampion: string | null,
 ): Standing[] {
   const points = new Map<string, number>();
-  for (const p of profiles) points.set(p.id, 0);
+  for (const p of profiles) {
+    points.set(p.id, actualChampion && p.champion_team_id === actualChampion ? CHAMPION_BONUS : 0);
+  }
   for (const p of preds) {
     if (!finishedIds.has(p.match_id)) continue;
     points.set(p.user_id, (points.get(p.user_id) ?? 0) + (p.points_earned ?? 0));
@@ -91,7 +95,7 @@ export async function runDailyMessages(
   const yesterday = dateInTz(new Date(now.getTime() - 86_400_000));
 
   const [{ data: profiles }, { data: matches }, { data: preds }] = await Promise.all([
-    supabase.from("profiles").select("id, display_name"),
+    supabase.from("profiles").select("id, display_name, champion_team_id"),
     supabase
       .from("matches")
       .select(
@@ -115,7 +119,8 @@ export async function runDailyMessages(
   );
 
   // ---- Standings de hoy + snapshot ----
-  const standings = computeStandings(profs, ps, finishedIds);
+  const actualChampion = await getActualChampion(supabase);
+  const standings = computeStandings(profs, ps, finishedIds, actualChampion);
   const leaderPoints = standings[0]?.points ?? 0;
   const maxRank = standings.reduce((mx, s) => Math.max(mx, s.rank), 0);
 

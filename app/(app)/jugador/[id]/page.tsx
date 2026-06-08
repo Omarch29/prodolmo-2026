@@ -4,8 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getPlayerDetail } from "@/lib/queries/player";
 import { getStandings } from "@/lib/queries/standings";
 import { Avatar } from "@/components/ui/Avatar";
+import { Flag } from "@/components/ui/Flag";
 import { RoundBar } from "@/components/jugador/RoundBar";
 import { AvatarUpload } from "@/components/jugador/AvatarUpload";
+import { ChampionPicker } from "@/components/champion/ChampionPicker";
+import { getTournamentStart, getTeamsList, isChampionEditable } from "@/lib/queries/champion";
 import { cn } from "@/lib/utils";
 
 function Kpi({ label, value }: { label: string; value: number }) {
@@ -37,6 +40,11 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
   // Vecinos en la tabla (§5.5 E): el de arriba, este jugador y el de abajo.
   const idx = standings.findIndex((s) => s.userId === id);
   const neighbors = idx >= 0 ? standings.slice(Math.max(0, idx - 1), idx + 2) : [];
+
+  // Campeón: ¿este jugador (propio) todavía puede elegirlo?
+  const start = await getTournamentStart(supabase);
+  const canPickChampion = isMe && isChampionEditable(start, detail.championTeamId);
+  const champTeams = canPickChampion ? await getTeamsList(supabase) : [];
 
   return (
     <div className="md:max-w-2xl md:mx-auto">
@@ -70,6 +78,28 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
 
       {/* Cambiar foto (solo el propio perfil) */}
       {isMe && <AvatarUpload />}
+
+      {/* Campeón elegido */}
+      {detail.champion && (
+        <div className="flex items-center gap-2 px-4 py-3 border-b-[2px] border-scoreboard-slate">
+          <span className="font-display text-[8px] tracking-[1px] text-grey-300">🏆 CAMPEÓN</span>
+          <span className="flex items-center gap-1.5 font-body text-sm text-line-white ml-auto">
+            <Flag flag={detail.champion.flag} size={20} />
+            {detail.champion.name}
+          </span>
+        </div>
+      )}
+
+      {/* Elegir campeón (propio y antes del inicio del Mundial) */}
+      {canPickChampion && (
+        <div className="flex flex-col gap-2 p-4 border-b-[2px] border-scoreboard-slate">
+          <div className="font-display text-[10px] tracking-[1px] text-line-white">🏆 ELEGÍ TU CAMPEÓN</div>
+          <p className="font-body text-xs text-grey-300">
+            Solo hasta que arranque el Mundial y una sola vez · <span className="text-card-yellow">+20</span> si acertás.
+          </p>
+          <ChampionPicker teams={champTeams} />
+        </div>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-3 gap-2 px-4 pt-5">

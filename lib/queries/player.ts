@@ -27,6 +27,8 @@ export type PlayerDetail = {
   displayName: string;
   avatarUrl: string | null;
   esBot: boolean;
+  championTeamId: string | null;
+  champion: { code: string; name: string; flag: string | null } | null;
   kpis: PlayerKpis;
   habits: PlayerHabits;
   rounds: RoundBreakdown[];
@@ -78,7 +80,9 @@ export async function getPlayerDetail(
 ): Promise<PlayerDetail | null> {
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, display_name, timezone, avatar_url, es_bot")
+    .select(
+      "id, display_name, timezone, avatar_url, es_bot, champion_team_id, champion:teams!profiles_champion_team_id_fkey(code, name, flag_url)",
+    )
     .eq("id", userId)
     .maybeSingle();
   if (!profile) return null;
@@ -166,6 +170,10 @@ export async function getPlayerDetail(
     displayName: profile.display_name,
     avatarUrl: profile.avatar_url,
     esBot: profile.es_bot,
+    championTeamId: profile.champion_team_id,
+    champion: profile.champion
+      ? { code: profile.champion.code, name: profile.champion.name, flag: profile.champion.flag_url }
+      : null,
     kpis,
     habits,
     rounds,
