@@ -11,6 +11,13 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   if (user) redirect("/dashboard");
 
   return (
-    <div className="ds-grass min-h-screen flex items-center justify-center p-4">{children}</div>
+    // Fondo: imagen centrada, lo más grande posible sin recortar (contain).
+    // El fondo oscuro se funde con la viñeta de la imagen en celular y desktop.
+    <div
+      className="min-h-screen flex items-center justify-center p-4 bg-scoreboard-ink bg-center bg-no-repeat bg-contain"
+      style={{ backgroundImage: "url('/login-bg.png')" }}
+    >
+      {children}
+    </div>
   );
 }
