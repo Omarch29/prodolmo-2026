@@ -1,0 +1,48 @@
+name: Sync fixtures (resultados / puntos)
+
+# Vercel Hobby corre los cron ~1 vez/día, insuficiente durante el Mundial.
+# Este workflow pega al endpoint de sync una vez por hora en la franja de
+# partidos para que los resultados (y por ende los puntos, que recalcula el
+# trigger de la BD al pasar un partido a "finished") se actualicen durante el día.
+#
+# El endpoint es idempotente (upsert por external_id) y está protegido por
+# CRON_SECRET, así que es seguro pegarle repetidamente.
+#
+# Requisito: en el repo, Settings → Secrets and variables → Actions, crear el
+# secret CRON_SECRET con el MISMO valor que la env var CRON_SECRET de Vercel.
+
+on:
+  schedule:
+    # Cron en UTC. Partidos 14:00–22:00 ART (UTC-3); cubrimos 14:00–01:00 ART
+    # para agarrar el final del último partido ⇒ 17:00–04:00 UTC, cada hora.
+    - cron: "0 0-4,17-23 * * *"
+  workflow_dispatch: {} # permite dispararlo a mano desde la pestaña Actions
+
+# Si una corrida se solapa con otra, no encolar duplicados.
+concurrency:
+  group: sync-fixtures
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar sync de fixtures
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::Falta el secret CRON_SECRET en el repo."
+            exit 1
+          fi
+          code=$(curl -sS -o /tmp/sync.json -w "%{http_code}" \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "https://prodolmo-2026.vercel.app/api/cron/sync-fixtures")
+          echo "HTTP $code"
+          cat /tmp/sync.json || true
+          echo
+          # Fallar si el HTTP no es 200 o si la respuesta trae ok:false.
+          if [ "$code" != "200" ] || grep -q '"ok":false' /tmp/sync.json; then
+            echo "::error::El sync no respondió OK."
+            exit 1
+          fi
