@@ -32,6 +32,13 @@ export function PredictionForm({
   const [winner, setWinner] = useState(initial?.winnerTeamId ?? "");
   const [state, action, pending] = useActionState(savePrediction, initialState);
 
+  // Feature graciosa: "predecir con IA" no predice nada, tira un chiste y se va.
+  const [aiState, setAiState] = useState<"idle" | "shown" | "gone">("idle");
+  const triggerAi = () => {
+    setAiState("shown");
+    setTimeout(() => setAiState("gone"), 2600);
+  };
+
   const tie = isKnockout && h === a;
 
   return (
@@ -78,6 +85,21 @@ export function PredictionForm({
       {state.error && (
         <p className="font-body text-sm text-card-red bg-scoreboard-slate border-pixel px-3 py-2">
           {state.error}
+        </p>
+      )}
+
+      {aiState === "idle" && (
+        <button
+          type="button"
+          onClick={triggerAi}
+          className="font-display text-[9px] tracking-[1px] border-pixel px-3 py-2 bg-sky-blue text-line-white flex items-center justify-center gap-2 shadow-pixel-xs active:translate-x-[2px] active:translate-y-[2px] active:shadow-pixel-pressed"
+        >
+          ✨ PREDECIR RESULTADO CARGANDO IA
+        </button>
+      )}
+      {aiState === "shown" && (
+        <p className="font-body text-sm text-line-white bg-scoreboard-slate border-pixel border-l-[6px] border-l-card-red px-3 py-2">
+          Que te pensás que me regalan los tokens? gordo.
         </p>
       )}
 
