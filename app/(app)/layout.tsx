@@ -23,9 +23,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const displayName = profile?.display_name ?? "Jugador";
 
-  // ¿Mostrar el modal de campeón? Solo si todavía puede elegir.
+  // ¿Mostrar el modal de campeón? Solo a quien todavía no eligió y el Mundial no arrancó.
+  // (Cambiar uno ya elegido se hace desde el detalle del jugador, no por el modal).
   const start = await getTournamentStart(supabase);
-  const canPickChampion = isChampionEditable(start, profile?.champion_team_id ?? null);
+  const canPickChampion =
+    (profile?.champion_team_id ?? null) === null && isChampionEditable(start);
   const teams = canPickChampion ? await getTeamsList(supabase) : [];
 
   return (

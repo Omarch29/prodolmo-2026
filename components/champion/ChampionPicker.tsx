@@ -10,9 +10,22 @@ import type { TeamOption } from "@/lib/queries/champion";
 const initialState: ChampionState = { error: null };
 
 /** Selector de campeón: grilla de selecciones (bandera + código) + confirmar. */
-export function ChampionPicker({ teams }: { teams: TeamOption[] }) {
+export function ChampionPicker({
+  teams,
+  onSuccess,
+}: {
+  teams: TeamOption[];
+  onSuccess?: () => void;
+}) {
   const [selected, setSelected] = useState<string | null>(null);
-  const [state, action, pending] = useActionState(setChampion, initialState);
+  const [state, action, pending] = useActionState(
+    async (prev: ChampionState, formData: FormData) => {
+      const result = await setChampion(prev, formData);
+      if (result.ok) onSuccess?.();
+      return result;
+    },
+    initialState,
+  );
 
   return (
     <form action={action} className="flex flex-col gap-3 min-h-0">
