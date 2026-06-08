@@ -11,7 +11,7 @@ export default function LoginPage() {
 
   // Feature graciosa: "olvidé contraseña" no recupera nada, solo reproduce un audio.
   const playForgot = () => {
-    const audio = new Audio("/forgot-password.ogg");
+    const audio = new Audio("/forgot-password.mp3");
     audio.play().catch(() => {});
   };
 
