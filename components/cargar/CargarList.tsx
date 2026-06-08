@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { MatchListRow } from "./MatchListRow";
 import { cn } from "@/lib/utils";
@@ -29,9 +30,15 @@ export function CargarList({ matches }: { matches: CargarMatch[] }) {
     return last ? sectionOf(last).key : sectionsFrom(jugados)[0]?.key ?? "";
   }, [jugados]);
 
-  const [tab, setTab] = useState<Tab>("play");
-  const [sectionKey, setSectionKey] = useState(playDefault);
-  const [day, setDay] = useState<string | null>(null);
+  // Estado inicial desde la URL (?tab=&sec=&day=) para conservar dónde estabas
+  // al volver desde el detalle de un partido. Lo escribimos con history.replaceState
+  // (sin recargar datos del server) al cambiar de tab/sección/día.
+  const sp = useSearchParams();
+  const [tab, setTab] = useState<Tab>(sp.get("tab") === "done" ? "done" : "play");
+  const [sectionKey, setSectionKey] = useState(
+    sp.get("sec") ?? (sp.get("tab") === "done" ? doneDefault : playDefault),
+  );
+  const [day, setDay] = useState<string | null>(sp.get("day"));
 
   const subset = tab === "play" ? porJugar : jugados;
   const sections = useMemo(() => sectionsFrom(subset), [subset]);
@@ -59,14 +66,31 @@ export function CargarList({ matches }: { matches: CargarMatch[] }) {
     ? sectionMatches.filter((m) => dayKey(m.kickoffAt) === effectiveDay)
     : sectionMatches;
 
+  // Refleja el filtro actual en la URL sin disparar navegación/refetch.
+  const persist = (t: Tab, s: string, d: string | null) => {
+    const params = new URLSearchParams();
+    if (t !== "play") params.set("tab", t);
+    if (s) params.set("sec", s);
+    if (d) params.set("day", d);
+    const qs = params.toString();
+    window.history.replaceState(window.history.state, "", qs ? `/cargar?${qs}` : "/cargar");
+  };
+
   const selectTab = (t: Tab) => {
+    const s = t === "play" ? playDefault : doneDefault;
     setTab(t);
-    setSectionKey(t === "play" ? playDefault : doneDefault);
+    setSectionKey(s);
     setDay(null);
+    persist(t, s, null);
   };
   const selectSection = (k: string) => {
     setSectionKey(k);
     setDay(null);
+    persist(tab, k, null);
+  };
+  const selectDay = (k: string) => {
+    setDay(k);
+    persist(tab, sectionKey, k);
   };
 
   const tabBtn = "font-display text-[10px] tracking-[1px] border-pixel px-3 py-2";
@@ -123,7 +147,7 @@ export function CargarList({ matches }: { matches: CargarMatch[] }) {
                 <button
                   key={k}
                   type="button"
-                  onClick={() => setDay(k)}
+                  onClick={() => selectDay(k)}
                   className={cn(chip, effectiveDay === k ? "bg-card-yellow text-ink" : "bg-scoreboard-black text-grey-300")}
                 >
                   {label}

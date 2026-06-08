@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getMatchForPrediction, getFriendPicks } from "@/lib/queries/cargar";
@@ -7,6 +6,7 @@ import { isPredictionEditable } from "@/lib/config";
 import { PredictionForm } from "@/components/cargar/PredictionForm";
 import { FriendPicks } from "@/components/cargar/FriendPicks";
 import { MatchComments } from "@/components/cargar/MatchComments";
+import { BackButton } from "@/components/cargar/BackButton";
 import { Countdown } from "@/components/ui/Countdown";
 import { Flag } from "@/components/ui/Flag";
 import { countryFlag } from "@/lib/flags/country";
@@ -55,9 +55,7 @@ export default async function CargarMatchPage({
   return (
     <div className="md:max-w-2xl md:mx-auto">
       <header className="flex items-center gap-3 bg-scoreboard-black border-b-[4px] border-border px-4 py-3">
-        <Link href="/cargar" className="font-display text-line-white text-xs">
-          ◂
-        </Link>
+        <BackButton />
         <span className="font-display text-line-white text-sm flex-1 truncate">{m.stageName}</span>
         {!playable ? (
           <span className="font-display text-[8px] border-pixel px-2 py-1 bg-scoreboard-slate text-grey-300">POR DEFINIR</span>
