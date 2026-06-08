@@ -9,7 +9,7 @@ export type ChampionState = { error: string | null; ok?: boolean };
 
 const schema = z.object({ teamId: z.string().uuid() });
 
-/** Guarda el campeón elegido. Solo antes del inicio del Mundial y una sola vez. */
+/** Guarda (o cambia) el campeón elegido. Permitido mientras el Mundial no arrancó. */
 export async function setChampion(_prev: ChampionState, formData: FormData): Promise<ChampionState> {
   const parsed = schema.safeParse({ teamId: formData.get("teamId") });
   if (!parsed.success) return { error: "Elegí una selección." };
@@ -20,15 +20,10 @@ export async function setChampion(_prev: ChampionState, formData: FormData): Pro
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sesión expirada." };
 
-  // Revalidar elegibilidad en el backend.
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("champion_team_id")
-    .eq("id", user.id)
-    .single();
+  // Revalidar elegibilidad en el backend: solo antes del inicio del Mundial.
   const start = await getTournamentStart(supabase);
-  if (!isChampionEditable(start, profile?.champion_team_id ?? null)) {
-    return { error: "Ya no se puede elegir campeón (el Mundial arrancó o ya elegiste)." };
+  if (!isChampionEditable(start)) {
+    return { error: "Ya no se puede cambiar el campeón (el Mundial arrancó)." };
   }
 
   const { error } = await supabase

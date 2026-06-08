@@ -44,13 +44,15 @@ export async function getActualChampion(supabase: SupabaseClient<Database>): Pro
   return f.decided_winner_team_id ?? null;
 }
 
-/** ¿Se puede elegir/cambiar el campeón? Solo si no eligió y el Mundial no arrancó. */
+/**
+ * ¿Se puede elegir/cambiar el campeón? Sí mientras el Mundial no haya arrancado
+ * (kickoff del primer partido). Se puede modificar las veces que se quiera hasta
+ * ese momento; una vez arrancado queda fijo.
+ */
 export function isChampionEditable(
   tournamentStart: string | null,
-  championTeamId: string | null,
   now: Date = new Date(),
 ): boolean {
-  if (championTeamId) return false;
   if (!tournamentStart) return true;
   return now.getTime() < new Date(tournamentStart).getTime();
 }

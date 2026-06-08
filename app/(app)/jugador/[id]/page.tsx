@@ -7,7 +7,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Flag } from "@/components/ui/Flag";
 import { RoundBar } from "@/components/jugador/RoundBar";
 import { AvatarUpload } from "@/components/jugador/AvatarUpload";
-import { ChampionPicker } from "@/components/champion/ChampionPicker";
+import { ChampionSection } from "@/components/champion/ChampionSection";
 import { getTournamentStart, getTeamsList, isChampionEditable } from "@/lib/queries/champion";
 import { cn } from "@/lib/utils";
 
@@ -41,10 +41,10 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
   const idx = standings.findIndex((s) => s.userId === id);
   const neighbors = idx >= 0 ? standings.slice(Math.max(0, idx - 1), idx + 2) : [];
 
-  // Campeón: ¿este jugador (propio) todavía puede elegirlo?
+  // Campeón: el propio jugador puede elegir/cambiar mientras el Mundial no arrancó.
   const start = await getTournamentStart(supabase);
-  const canPickChampion = isMe && isChampionEditable(start, detail.championTeamId);
-  const champTeams = canPickChampion ? await getTeamsList(supabase) : [];
+  const championChangeable = isMe && isChampionEditable(start);
+  const champTeams = championChangeable ? await getTeamsList(supabase) : [];
 
   return (
     <div className="md:max-w-2xl md:mx-auto">
@@ -79,26 +79,23 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
       {/* Cambiar foto (solo el propio perfil) */}
       {isMe && <AvatarUpload />}
 
-      {/* Campeón elegido */}
-      {detail.champion && (
-        <div className="flex items-center gap-2 px-4 py-3 border-b-[2px] border-scoreboard-slate">
-          <span className="font-display text-[8px] tracking-[1px] text-grey-300">🏆 CAMPEÓN</span>
-          <span className="flex items-center gap-1.5 font-body text-sm text-line-white ml-auto">
-            <Flag flag={detail.champion.flag} size={20} />
-            {detail.champion.name}
-          </span>
-        </div>
-      )}
-
-      {/* Elegir campeón (propio y antes del inicio del Mundial) */}
-      {canPickChampion && (
-        <div className="flex flex-col gap-2 p-4 border-b-[2px] border-scoreboard-slate">
-          <div className="font-display text-[10px] tracking-[1px] text-line-white">🏆 ELEGÍ TU CAMPEÓN</div>
-          <p className="font-body text-xs text-grey-300">
-            Solo hasta que arranque el Mundial y una sola vez · <span className="text-card-yellow">+20</span> si acertás.
-          </p>
-          <ChampionPicker teams={champTeams} />
-        </div>
+      {/* Campeón: propio → elegir/modificar; ajeno → solo lectura */}
+      {isMe ? (
+        <ChampionSection
+          champion={detail.champion}
+          teams={champTeams}
+          changeable={championChangeable}
+        />
+      ) : (
+        detail.champion && (
+          <div className="flex items-center gap-2 px-4 py-3 border-b-[2px] border-scoreboard-slate">
+            <span className="font-display text-[8px] tracking-[1px] text-grey-300">🏆 CAMPEÓN</span>
+            <span className="flex items-center gap-1.5 font-body text-sm text-line-white ml-auto">
+              <Flag flag={detail.champion.flag} size={20} />
+              {detail.champion.name}
+            </span>
+          </div>
+        )
       )}
 
       {/* KPIs */}
