@@ -9,6 +9,12 @@ const initialState: LoginState = { error: null };
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(login, initialState);
 
+  // Feature graciosa: "olvidé contraseña" no recupera nada, solo reproduce un audio.
+  const playForgot = () => {
+    const audio = new Audio("/forgot-password.ogg");
+    audio.play().catch(() => {});
+  };
+
   return (
     <div className="w-full max-w-sm bg-scoreboard-black border-pixel-thick shadow-pixel-lg p-6">
       <h1 className="font-display text-line-white text-sm flex items-center gap-2 mb-1">
@@ -48,6 +54,14 @@ export default function LoginPage() {
         <Button type="submit" block disabled={pending}>
           {pending ? "Ingresando..." : "Ingresar"}
         </Button>
+
+        <button
+          type="button"
+          onClick={playForgot}
+          className="font-body text-xs text-grey-400 underline self-center hover:text-line-white"
+        >
+          Olvidé mi contraseña
+        </button>
       </form>
     </div>
   );
