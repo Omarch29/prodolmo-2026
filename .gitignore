@@ -42,6 +42,10 @@ yarn-error.log*
 /cypress/videos
 /cypress/downloads
 
+# datos sensibles (usuarios reales / credenciales) — NO commitear
+/scripts/usuarios.json
+/credenciales.csv
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
