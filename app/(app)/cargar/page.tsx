@@ -11,8 +11,14 @@ export default async function CargarPage() {
   if (!user) return null;
 
   const matches = await getCargarMatches(supabase, user.id);
+  // Solo cuentan los que realmente se pueden cargar ahora: equipos definidos
+  // (excluye 16avos/eliminación con cruces TBD) y aún editables.
   const pendientes = matches.filter(
-    (m) => m.status === "scheduled" && isPredictionEditable(new Date(m.kickoffAt)) && !m.myPred,
+    (m) =>
+      m.playable &&
+      m.status === "scheduled" &&
+      isPredictionEditable(new Date(m.kickoffAt)) &&
+      !m.myPred,
   ).length;
 
   return (
