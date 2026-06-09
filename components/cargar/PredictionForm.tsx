@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { savePrediction, type SavePredictionState } from "@/actions/predictions";
 import { Stepper } from "@/components/ui/Stepper";
@@ -20,6 +20,20 @@ const CHARACTERS = [
   "makki1.png", "makki3.png", "makki2.png", "Santi2.png", "matt2.png", "Santi1.png",
   "Matt1.png", "Gabo1.png", "fer2.png", "Carlos1.png", "fer1.png",
 ] as const;
+
+// "Predecir con IA" aparece solo el 25% de las veces. La moneda se tira FUERA
+// del render (store por matchId) y se lee con useSyncExternalStore — así no
+// rompe SSR ni viola la pureza del render. Se cachea por partido.
+const noopSubscribe = () => () => {};
+const serverFalse = () => false;
+const aiRolls = new Map<string, boolean>();
+function aiRollFor(matchId: string): boolean {
+  const cached = aiRolls.get(matchId);
+  if (cached !== undefined) return cached;
+  const roll = Math.random() < 0.25;
+  aiRolls.set(matchId, roll);
+  return roll;
+}
 
 /** Índice random distinto del actual (para que el personaje cambie en cada apertura). */
 function randomCharacter(exclude: number): number {
@@ -53,6 +67,9 @@ export function PredictionForm({
   const [state, action, pending] = useActionState(savePrediction, initialState);
 
   // Feature graciosa: "predecir con IA" no predice nada, tira un chiste y se va.
+  // Aparece solo el 25% de las veces: se decide en el cliente (gate de hidratación
+  // para no romper SSR) y se re-tira la moneda al cambiar de partido.
+  const showAi = useSyncExternalStore(noopSubscribe, () => aiRollFor(matchId), serverFalse);
   const [aiState, setAiState] = useState<"idle" | "shown" | "gone">("idle");
   const triggerAi = () => {
     setAiState("shown");
@@ -119,7 +136,7 @@ export function PredictionForm({
         </p>
       )}
 
-      {aiState === "idle" && (
+      {showAi && aiState === "idle" && (
         <button
           type="button"
           onClick={triggerAi}
