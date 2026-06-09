@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { logout } from "@/actions/auth";
 import { Button } from "@/components/ui/Button";
 import { ConfettiToggle } from "@/components/fx/ConfettiToggle";
+import { ConfirmSaveToggle } from "@/components/fx/ConfirmSaveToggle";
 
 /** Navegación lateral — solo desktop. */
 export function Sidebar({ displayName }: { displayName: string }) {
@@ -39,6 +40,7 @@ export function Sidebar({ displayName }: { displayName: string }) {
 
       <div className="mt-auto flex flex-col gap-2">
         <ConfettiToggle />
+        <ConfirmSaveToggle />
         <form action={logout}>
           <div className="font-body text-xs text-grey-300 mb-2 truncate">{displayName}</div>
           <Button type="submit" variant="ghost" size="sm" block>

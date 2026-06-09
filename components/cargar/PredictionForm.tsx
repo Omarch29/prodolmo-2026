@@ -6,6 +6,7 @@ import { savePrediction, type SavePredictionState } from "@/actions/predictions"
 import { Stepper } from "@/components/ui/Stepper";
 import { Button } from "@/components/ui/Button";
 import { Flag } from "@/components/ui/Flag";
+import { useConfirmSave } from "@/components/fx/useConfirmSave";
 import { cn } from "@/lib/utils";
 import type { TeamLite } from "@/lib/queries/dashboard";
 
@@ -58,7 +59,9 @@ export function PredictionForm({
     setTimeout(() => setAiState("gone"), 2600);
   };
 
-  // Modal de confirmación con personaje random (rama fun).
+  // Modal de confirmación con personaje random (rama fun). Se puede desactivar
+  // con el toggle "Confirmar guardar" (guarda directo, sin el modal).
+  const confirmSave = useConfirmSave();
   const [confirming, setConfirming] = useState(false);
   const [charIdx, setCharIdx] = useState(0);
   const openConfirm = () => {
@@ -131,8 +134,13 @@ export function PredictionForm({
         </p>
       )}
 
-      <Button type="button" block onClick={openConfirm} disabled={pending}>
-        ⚽ Guardar pronóstico
+      <Button
+        type={confirmSave ? "button" : "submit"}
+        block
+        onClick={confirmSave ? openConfirm : undefined}
+        disabled={pending}
+      >
+        {pending ? "Guardando..." : "⚽ Guardar pronóstico"}
       </Button>
 
       <AnimatePresence>
