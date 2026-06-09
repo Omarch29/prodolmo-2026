@@ -9,6 +9,8 @@ import { MatchComments } from "@/components/cargar/MatchComments";
 import { BackButton } from "@/components/cargar/BackButton";
 import { Countdown } from "@/components/ui/Countdown";
 import { Flag } from "@/components/ui/Flag";
+import { buttonClassName } from "@/components/ui/Button";
+import { googleCalendarUrl } from "@/lib/calendar/google";
 import { countryFlag } from "@/lib/flags/country";
 import type { TeamLite } from "@/lib/queries/dashboard";
 
@@ -94,6 +96,28 @@ export default async function CargarMatchPage({
             </div>
           )}
         </div>
+
+        {/* Agregar el partido al Google Calendar */}
+        {!finished && (
+          <a
+            href={googleCalendarUrl({
+              homeName: m.home.name,
+              awayName: m.away.name,
+              kickoffISO: m.kickoffAt,
+              stageName: m.stageName,
+              matchday: m.matchday,
+            })}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonClassName({
+              variant: "secondary",
+              size: "sm",
+              className: "mx-4 flex items-center justify-center gap-2",
+            })}
+          >
+            📅 Agregar a Google Calendar
+          </a>
+        )}
 
         {/* Previa generada por IA */}
         {!finished && m.aiPreview && (
