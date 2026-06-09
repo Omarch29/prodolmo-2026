@@ -57,7 +57,7 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
 
       {/* Hero */}
       <div className="flex items-center gap-3 bg-scoreboard-black border-b-[4px] border-border p-4">
-        <Avatar name={detail.displayName} src={detail.avatarUrl} size={54} />
+        <Avatar name={detail.displayName} src={detail.avatarUrl} size={96} />
         <div className="flex-1 min-w-0">
           <div className="font-display text-line-white text-sm truncate">
             {detail.displayName.toUpperCase()}
