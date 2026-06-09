@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getPlayerDetail } from "@/lib/queries/player";
+import { getPlayerPredictions, getPlayerComments } from "@/lib/queries/activity";
 import { getStandings } from "@/lib/queries/standings";
+import { PlayerActivity } from "@/components/jugador/PlayerActivity";
 import { Avatar } from "@/components/ui/Avatar";
 import { Flag } from "@/components/ui/Flag";
 import { RoundBar } from "@/components/jugador/RoundBar";
@@ -28,9 +30,11 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [detail, standings] = await Promise.all([
+  const [detail, standings, predictions, comments] = await Promise.all([
     getPlayerDetail(supabase, id),
     getStandings(supabase),
+    getPlayerPredictions(supabase, id),
+    getPlayerComments(supabase, id),
   ]);
   if (!detail) notFound();
 
@@ -135,7 +139,9 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
                 )}
               >
                 <span className="w-5 text-center font-display text-[10px] text-grey-300">{n.rank}</span>
-                <Avatar name={n.displayName} src={n.avatarUrl} size={24} />
+                <Link href={`/jugador/${n.userId}`} className="shrink-0">
+                  <Avatar name={n.displayName} src={n.avatarUrl} size={24} />
+                </Link>
                 <span className="flex-1 truncate font-body text-sm text-line-white">
                   {n.displayName}
                   {n.esBot ? " 🤖" : ""}
@@ -157,6 +163,9 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
           <RoundBar key={r.stageName} r={r} />
         ))}
       </div>
+
+      {/* Actividad: todos los pronósticos + últimos comentarios */}
+      <PlayerActivity predictions={predictions} comments={comments} />
     </div>
   );
 }

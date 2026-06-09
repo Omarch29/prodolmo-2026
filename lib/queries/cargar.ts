@@ -175,7 +175,9 @@ export async function getPrevMatchId(
 }
 
 export type FriendPick = {
+  userId: string;
   displayName: string;
+  avatarUrl: string | null;
   home: number;
   away: number;
   points: number | null;
@@ -193,12 +195,16 @@ export async function getFriendPicks(
 ): Promise<FriendPick[]> {
   const { data } = await supabase
     .from("predictions")
-    .select("pred_home_score, pred_away_score, points_earned, profile:profiles(display_name)")
+    .select(
+      "user_id, pred_home_score, pred_away_score, points_earned, profile:profiles(display_name, avatar_url)",
+    )
     .eq("match_id", matchId)
     .neq("user_id", userId);
 
   return (data ?? []).map((p) => ({
+    userId: p.user_id,
     displayName: p.profile?.display_name ?? "?",
+    avatarUrl: p.profile?.avatar_url ?? null,
     home: p.pred_home_score,
     away: p.pred_away_score,
     points: p.points_earned,
