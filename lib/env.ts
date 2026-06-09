@@ -47,6 +47,8 @@ export function serverEnv(): ServerEnv {
     cachedServerEnv = serverSchema.parse({
       SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+      CRON_SECRET: process.env.CRON_SECRET,
+      FOOTBALL_DATA_TOKEN: process.env.FOOTBALL_DATA_TOKEN,
     });
   }
   return cachedServerEnv;
