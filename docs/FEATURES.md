@@ -147,9 +147,18 @@ Catálogo completo de funcionalidades del sistema. Para el "cómo está hecho" v
 
 ## 🎉 Extras (rama `fun`)
 
-_(Solo en la rama `fun`, que es la que se deploya. Son features humorísticas.)_
+_(Solo en la rama `fun`, que es la que se deploya. Son features humorísticas. En
+`main` se mantienen aparte para conservar la versión "seria" del proyecto.)_
 
-El detalle de estas features está documentado en la rama **`fun`**. En `main` se
-mantienen aparte para conservar la versión "seria" del proyecto.
-
-<!-- FUN-EXTRAS -->
+- **"Olvidé mi contraseña"** (login): no recupera nada — **reproduce un audio**
+  con un chiste.
+- **"✨ Predecir resultado cargando IA"**: botón que aparece **solo el 25% de las
+  veces** al cargar un partido; al tocarlo muestra _"Que te pensás que me regalan
+  los tokens? gordo."_ y desaparece.
+- **Modal de confirmación con personaje**: al **Guardar pronóstico** se opaca el
+  fondo, aparece un **personaje random** (pixel-art de los amigos, en grande) y un
+  **globo de diálogo** flotando arriba — _"¿Esa boludez vas a cagar?"_ — con
+  botones **Guardar resultado** (verde) / **Cancelar** (rojo). El personaje cambia
+  en cada apertura.
+- **Toggle "Confirmar guardar"**: botón discreto (al lado del de confeti, en el
+  Sidebar) para **desactivar** el modal de personajes y guardar directo.
