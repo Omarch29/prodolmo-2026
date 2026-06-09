@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { addComment, type CommentState } from "@/actions/comments";
 import { Avatar } from "@/components/ui/Avatar";
@@ -32,10 +33,15 @@ export function MatchComments({ matchId, comments }: { matchId: string; comments
         ) : (
           comments.map((c) => (
             <li key={c.id} className="flex gap-2 px-3 py-2 border-b-[2px] border-scoreboard-slate last:border-b-0">
-              <Avatar name={c.author} size={28} />
+              <Link href={`/jugador/${c.authorId}`} className="shrink-0">
+                <Avatar name={c.author} src={c.avatarUrl} size={28} />
+              </Link>
               <div className="min-w-0">
                 <div className="font-body text-[11px] text-grey-400">
-                  <span className="text-line-white font-semibold">{c.author}</span> · {fmt(c.createdAt)}
+                  <Link href={`/jugador/${c.authorId}`} className="text-line-white font-semibold hover:underline">
+                    {c.author}
+                  </Link>{" "}
+                  · {fmt(c.createdAt)}
                 </div>
                 <p className="font-body text-sm text-line-white break-words">{c.body}</p>
               </div>

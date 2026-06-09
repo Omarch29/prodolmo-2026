@@ -177,6 +177,8 @@ export default async function CargarMatchPage({
             picks={friendPicks}
             title={finished ? "Análisis del grupo · quién sumó" : "Pronósticos del grupo"}
             reveal={finished}
+            home={m.home}
+            away={m.away}
           />
         )}
 
