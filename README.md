@@ -6,7 +6,7 @@ compite en una tabla de posiciones. Incluye simulador del cuadro, comentarios po
 partido y "mensajes del día" con onda generados por IA. Estética **pixel-art**
 retro, **mobile-first** y responsive.
 
-🔗 **Demo:** https://prodolmo-2026.vercel.app · 📄 [Spec funcional](docs/Prode-Mundial-2026-Spec.md) · 🏗️ [Arquitectura](docs/ARCHITECTURE.md) · 🚀 [Deploy](docs/DEPLOY.md)
+🔗 **Demo:** https://prodolmo-2026.vercel.app · ✨ [Features](docs/FEATURES.md) · 📄 [Spec funcional](docs/Prode-Mundial-2026-Spec.md) · 🏗️ [Arquitectura](docs/ARCHITECTURE.md) · 🚀 [Deploy](docs/DEPLOY.md)
 
 > Proyecto de práctica profesional, real y deployable. Lista cerrada de usuarios
 > (sin registro abierto).
@@ -15,21 +15,31 @@ retro, **mobile-first** y responsive.
 
 ## ✨ Features
 
-- **Login** con Supabase Auth (email + password), lista cerrada sin auto-registro.
-- **Dashboard**: próximo partido por cargar (con cuenta regresiva) + mensajes
-  personalizados del día. Layout de 2 columnas en desktop.
-- **Cargar pronósticos**: fixture filtrable por sección (Grupos F1/F2/F3, 16avos,
-  octavos, cuartos, semis, final) y por día; carga/edición hasta **1 h antes** del
-  partido; podés ver los pronósticos del resto del grupo; **comentarios** por partido.
-- **Tabla de posiciones**: ranking con desempate por plenos, medallas y
-  movimiento ▲/▼ respecto al día anterior.
-- **Detalle de jugador**: KPIs (puntos, plenos, aciertos) y desglose por ronda.
-- **Simulador del Mundial 2026**: wizard para elegir 1.º/2.º de los 12 grupos,
-  los 8 mejores terceros y completar el cuadro de eliminación (dos llaves
-  enfrentadas) hasta el campeón. No afecta los puntos reales.
-- **Resultados reales** sincronizados desde [football-data.org](https://www.football-data.org).
-- **IA (Gemini Flash)**: reescribe los mensajes del día con tono rioplatense y
-  genera previas de partido. Degradación elegante si no hay API key.
+Resumen — el **catálogo completo** está en **[docs/FEATURES.md](docs/FEATURES.md)**.
+
+- **Login** (Supabase Auth, lista cerrada sin auto-registro) y **avatar propio**.
+- **Cargar pronósticos**: fixture filtrable por sección (Grupos, Ronda de 32,
+  Octavos, Cuartos, Semis, Final) y por día; carga/edición hasta **1 h antes**;
+  navegación **Anterior/Siguiente** entre partidos; el filtro se conserva al volver.
+- **Sistema de puntos** (0/1/3 × multiplicador por ronda) calculado por **trigger**
+  en la base; **+20** por acertar el **campeón**.
+- **Anti-spoiler**: desde **Octavos**, los pronósticos ajenos solo se ven cuando el
+  partido se bloquea (1 h antes); en grupos y Ronda de 32 se ven siempre.
+- **Tabla de posiciones**: desempate por plenos, medallas y movimiento ▲/▼.
+- **Detalle de jugador**: KPIs, hábitos, desglose por ronda y **feed de actividad**
+  (todos sus pronósticos con banderitas + últimos comentarios).
+- **Comentarios** por partido con **editor WYSIWYG** (HTML sanitizado en el server).
+- **Panel hover** sobre avatares (puntos, puesto, campeón elegido).
+- **Alerta roja** cuando un partido arranca en **&lt;2 h** y no lo cargaste.
+- **Agendar en Google Calendar** por partido (banderas + códigos en el título).
+- **Simulador** del cuadro hasta el campeón (no afecta puntos reales).
+- **Inicio**: próximo partido por cargar + mensajes del día + mini-tabla.
+- **Resultados reales** desde [football-data.org](https://www.football-data.org)
+  (sync por cron + **GitHub Action horaria** en la franja de partidos).
+- **IA (Gemini Flash)**: mensajes del día y previas de partido sobre hechos ya
+  calculados (degradación elegante sin API key).
+- **Pantalla INFO** que explica el puntaje y las reglas de visibilidad/cierre.
+- Estética **pixel-art**, **mobile-first**, transiciones y confetti.
 
 ## 🧰 Tecnologías
 
@@ -49,9 +59,9 @@ retro, **mobile-first** y responsive.
 
 - **Lecturas** por React Server Components; **mutaciones** solo por **Server
   Actions** validadas con Zod. Nada de API routes para el CRUD.
-- **Seguridad en la base**: la barrera real es **RLS** (no el front). Ej.: un
-  pronóstico ajeno solo es legible a partir de `kickoff − 1 h`; el cierre de carga
-  se valida en el backend y en RLS.
+- **Seguridad en la base**: la barrera real es **RLS** (no el front). Ej.: desde
+  Octavos, un pronóstico ajeno solo es legible una vez bloqueado el partido
+  (`kickoff − 1 h`); el cierre de carga se valida en el backend y en RLS.
 - **Reglas en la base**: el **cálculo de puntos** vive en un **trigger** de
   Postgres (se dispara al finalizar un partido). El esquema está en migraciones
   versionadas (`supabase/migrations/`).
@@ -70,7 +80,8 @@ Detalle completo en **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
   acertar el resultado, **0** si no, multiplicado por la ronda (×1 grupos … ×6
   final).
 - **Cierre de edición**: podés cargar/editar hasta `kickoff − 1 h`; después queda
-  fijo (validado en backend y RLS). Los pronósticos del grupo son visibles para todos.
+  fijo (validado en backend y RLS). **Visibilidad**: en grupos y Ronda de 32 los
+  pronósticos del grupo se ven siempre; desde Octavos, recién al bloquearse el partido.
 - **Mensajes del día**: un cron toma una foto de la tabla (snapshot), calcula
   hechos por usuario (te pasaron, gap al líder, racha, goleada que nadie acertó…)
   y los redacta con Gemini (con plantillas como fallback).
@@ -89,7 +100,8 @@ lib/
   gemini/            # wrapper + prompts
   validation/        # schemas Zod
 actions/             # Server Actions (mutaciones)
-supabase/migrations/ # esquema versionado (0001..0010) + seed
+supabase/migrations/ # esquema versionado (0001..0015) + seed
+.github/workflows/   # GitHub Action: sync horario de fixture en la franja de partidos
 scripts/             # seed-users, seed-demo, sync-fixtures, run-daily-messages
 test/                # Vitest (lógica pura)
 design/              # mockups + design system pixel-art (referencia)
