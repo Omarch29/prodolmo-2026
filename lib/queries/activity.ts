@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import { htmlToText } from "@/lib/sanitize";
 
 export type TeamMini = { code: string; flag: string | null };
 
@@ -90,7 +91,7 @@ export async function getPlayerComments(
     .filter((c) => c.match)
     .map((c) => ({
       id: c.id,
-      body: c.body,
+      body: htmlToText(c.body), // preview en texto plano (el body es HTML)
       createdAt: c.created_at,
       matchId: c.match!.id,
       home: team(c.match!.home_team),

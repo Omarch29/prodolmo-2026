@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { addComment, type CommentState } from "@/actions/comments";
 import { AvatarHoverCard } from "@/components/ui/AvatarHoverCard";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { Button } from "@/components/ui/Button";
 import type { CommentItem } from "@/lib/queries/comments";
 
@@ -19,7 +20,20 @@ const fmt = (iso: string) =>
   }).format(new Date(iso));
 
 export function MatchComments({ matchId, comments }: { matchId: string; comments: CommentItem[] }) {
-  const [state, action, pending] = useActionState(addComment, initialState);
+  const [html, setHtml] = useState("");
+  const [editorKey, setEditorKey] = useState(0); // para resetear el editor al publicar
+  const [state, action, pending] = useActionState(
+    async (prev: CommentState, formData: FormData) => {
+      const result = await addComment(prev, formData);
+      if (!result.error) {
+        setHtml("");
+        setEditorKey((k) => k + 1);
+      }
+      return result;
+    },
+    initialState,
+  );
+  const isEmpty = html.trim() === "";
 
   return (
     <section className="mx-4 bg-scoreboard-black border-pixel-thick shadow-pixel-sm">
@@ -41,7 +55,10 @@ export function MatchComments({ matchId, comments }: { matchId: string; comments
                   </Link>{" "}
                   · {fmt(c.createdAt)}
                 </div>
-                <p className="font-body text-sm text-line-white break-words">{c.body}</p>
+                <div
+                  className="font-body text-sm text-line-white break-words [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-0 [&_strong]:font-bold [&_em]:italic"
+                  dangerouslySetInnerHTML={{ __html: c.body }}
+                />
               </div>
             </li>
           ))
@@ -50,16 +67,10 @@ export function MatchComments({ matchId, comments }: { matchId: string; comments
 
       <form action={action} className="flex flex-col gap-2 p-3 border-t-[3px] border-border">
         <input type="hidden" name="matchId" value={matchId} />
-        <textarea
-          name="body"
-          rows={2}
-          maxLength={500}
-          required
-          placeholder="Escribí un comentario..."
-          className="bg-line-white text-ink border-pixel px-2 py-2 font-body text-sm outline-none resize-none"
-        />
+        <input type="hidden" name="body" value={html} />
+        <RichTextEditor key={editorKey} onChange={setHtml} />
         {state.error && <p className="font-body text-sm text-card-red">{state.error}</p>}
-        <Button type="submit" size="sm" disabled={pending} className="self-end">
+        <Button type="submit" size="sm" disabled={pending || isEmpty} className="self-end">
           {pending ? "Enviando..." : "Comentar"}
         </Button>
       </form>
