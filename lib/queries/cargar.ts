@@ -71,6 +71,7 @@ export type MatchDetail = {
   status: MatchStatus;
   isKnockout: boolean;
   stageName: string;
+  stageSortOrder: number;
   matchday: number | null;
   homeTeamId: string | null;
   awayTeamId: string | null;
@@ -95,7 +96,7 @@ export async function getMatchForPrediction(
     .from("matches")
     .select(
       `id, kickoff_at, status, group_id, matchday, home_team_id, away_team_id, home_score, away_score, ai_preview, referees,
-       stage:stages(name),
+       stage:stages(name, sort_order),
        home_team:teams!matches_home_team_id_fkey(name, code, flag_url),
        away_team:teams!matches_away_team_id_fkey(name, code, flag_url)`,
     )
@@ -116,6 +117,7 @@ export async function getMatchForPrediction(
     status: m.status,
     isKnockout: m.group_id === null,
     stageName: m.stage?.name ?? "",
+    stageSortOrder: m.stage?.sort_order ?? 99,
     matchday: m.matchday,
     homeTeamId: m.home_team_id,
     awayTeamId: m.away_team_id,

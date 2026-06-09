@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { addComment, type CommentState } from "@/actions/comments";
-import { Avatar } from "@/components/ui/Avatar";
+import { AvatarHoverCard } from "@/components/ui/AvatarHoverCard";
 import { Button } from "@/components/ui/Button";
 import type { CommentItem } from "@/lib/queries/comments";
 
@@ -33,9 +33,7 @@ export function MatchComments({ matchId, comments }: { matchId: string; comments
         ) : (
           comments.map((c) => (
             <li key={c.id} className="flex gap-2 px-3 py-2 border-b-[2px] border-scoreboard-slate last:border-b-0">
-              <Link href={`/jugador/${c.authorId}`} className="shrink-0">
-                <Avatar name={c.author} src={c.avatarUrl} size={28} />
-              </Link>
+              <AvatarHoverCard userId={c.authorId} name={c.author} avatarUrl={c.avatarUrl} size={28} />
               <div className="min-w-0">
                 <div className="font-body text-[11px] text-grey-400">
                   <Link href={`/jugador/${c.authorId}`} className="text-line-white font-semibold hover:underline">

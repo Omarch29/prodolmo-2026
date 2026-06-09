@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { isPredictionEditable, arePredictionsVisible, PREDICTION_LOCK_HOURS } from "@/lib/config";
+import {
+  isPredictionEditable,
+  arePredictionsVisible,
+  othersPicksVisible,
+  PREDICTION_LOCK_HOURS,
+} from "@/lib/config";
 
 const kickoff = new Date("2026-06-10T20:00:00Z");
 
@@ -37,5 +42,22 @@ describe("regla de cierre/visibilidad de pronósticos", () => {
       const now = new Date(`2026-06-10T${t}Z`);
       expect(isPredictionEditable(kickoff, now)).toBe(!arePredictionsVisible(kickoff, now));
     }
+  });
+});
+
+describe("visibilidad de pronósticos ajenos por etapa", () => {
+  const lejos = new Date("2026-06-10T18:00:00Z"); // 2h antes (no bloqueado)
+  const cerca = new Date("2026-06-10T19:30:00Z"); // 30m antes (bloqueado)
+
+  it("grupos (1) y ronda de 32 (2) se ven siempre, aún sin bloquear", () => {
+    expect(othersPicksVisible(1, kickoff, lejos)).toBe(true);
+    expect(othersPicksVisible(2, kickoff, lejos)).toBe(true);
+  });
+
+  it("octavos (3) en adelante: ocultos hasta el cierre", () => {
+    expect(othersPicksVisible(3, kickoff, lejos)).toBe(false);
+    expect(othersPicksVisible(6, kickoff, lejos)).toBe(false);
+    expect(othersPicksVisible(3, kickoff, cerca)).toBe(true);
+    expect(othersPicksVisible(6, kickoff, cerca)).toBe(true);
   });
 });

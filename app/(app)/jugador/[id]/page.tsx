@@ -6,11 +6,13 @@ import { getPlayerPredictions, getPlayerComments } from "@/lib/queries/activity"
 import { getStandings } from "@/lib/queries/standings";
 import { PlayerActivity } from "@/components/jugador/PlayerActivity";
 import { Avatar } from "@/components/ui/Avatar";
+import { AvatarHoverCard } from "@/components/ui/AvatarHoverCard";
 import { Flag } from "@/components/ui/Flag";
 import { RoundBar } from "@/components/jugador/RoundBar";
 import { AvatarUpload } from "@/components/jugador/AvatarUpload";
 import { ChampionSection } from "@/components/champion/ChampionSection";
 import { getTournamentStart, getTeamsList, isChampionEditable } from "@/lib/queries/champion";
+import { othersPicksVisible } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
 function Kpi({ label, value }: { label: string; value: number }) {
@@ -40,6 +42,11 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
 
   const rank = standings.find((s) => s.userId === id)?.rank ?? standings.length;
   const isMe = id === user.id;
+
+  // Anti-spoiler: en perfiles ajenos, ocultar pronósticos de Octavos+ aún no bloqueados.
+  const visiblePredictions = isMe
+    ? predictions
+    : predictions.filter((p) => othersPicksVisible(p.stageSortOrder, new Date(p.kickoffAt)));
 
   // Vecinos en la tabla (§5.5 E): el de arriba, este jugador y el de abajo.
   const idx = standings.findIndex((s) => s.userId === id);
@@ -139,9 +146,7 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
                 )}
               >
                 <span className="w-5 text-center font-display text-[10px] text-grey-300">{n.rank}</span>
-                <Link href={`/jugador/${n.userId}`} className="shrink-0">
-                  <Avatar name={n.displayName} src={n.avatarUrl} size={24} />
-                </Link>
+                <AvatarHoverCard name={n.displayName} userId={n.userId} avatarUrl={n.avatarUrl} size={24} />
                 <span className="flex-1 truncate font-body text-sm text-line-white">
                   {n.displayName}
                   {n.esBot ? " 🤖" : ""}
@@ -165,7 +170,7 @@ export default async function JugadorPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* Actividad: todos los pronósticos + últimos comentarios */}
-      <PlayerActivity predictions={predictions} comments={comments} />
+      <PlayerActivity predictions={visiblePredictions} comments={comments} />
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { getStandings } from "@/lib/queries/standings";
-import { getNextMatch, getDailyMessages } from "@/lib/queries/dashboard";
+import { getNextMatch, getDailyMessages, getPendingSoonMatches } from "@/lib/queries/dashboard";
 import { HeroHeader } from "@/components/dashboard/HeroHeader";
 import { NextMatchCard } from "@/components/dashboard/NextMatchCard";
 import { DailyMessages } from "@/components/dashboard/DailyMessages";
 import { DesktopDashboard } from "@/components/dashboard/DesktopDashboard";
+import { SoonAlert } from "@/components/cargar/SoonAlert";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -13,10 +14,11 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) return null; // el layout protegido ya garantiza sesión
 
-  const [standings, nextMatch, messages] = await Promise.all([
+  const [standings, nextMatch, messages, pendingSoon] = await Promise.all([
     getStandings(supabase),
     getNextMatch(supabase, user.id),
     getDailyMessages(supabase, user.id),
+    getPendingSoonMatches(supabase, user.id),
   ]);
 
   const me = standings.find((s) => s.userId === user.id);
@@ -26,6 +28,15 @@ export default async function DashboardPage() {
 
   return (
     <>
+      {/* Alerta: partidos que arrancan en <2h y no cargaste */}
+      {pendingSoon.length > 0 && (
+        <div className="flex flex-col gap-2 px-4 pt-4 md:max-w-5xl md:mx-auto">
+          {pendingSoon.map((m) => (
+            <SoonAlert key={m.id} match={m} />
+          ))}
+        </div>
+      )}
+
       {/* Mobile */}
       <div className="md:hidden">
         <HeroHeader

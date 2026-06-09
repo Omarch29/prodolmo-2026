@@ -8,17 +8,24 @@ import {
   getPrevMatchId,
 } from "@/lib/queries/cargar";
 import { getComments } from "@/lib/queries/comments";
-import { isPredictionEditable } from "@/lib/config";
+import { isPredictionEditable, othersPicksVisible, isMatchSoon } from "@/lib/config";
 import { PredictionForm } from "@/components/cargar/PredictionForm";
 import { FriendPicks } from "@/components/cargar/FriendPicks";
 import { MatchComments } from "@/components/cargar/MatchComments";
 import { BackButton } from "@/components/cargar/BackButton";
+import { SoonAlert } from "@/components/cargar/SoonAlert";
 import { Countdown } from "@/components/ui/Countdown";
 import { Flag } from "@/components/ui/Flag";
 import { buttonClassName } from "@/components/ui/Button";
 import { googleCalendarUrl } from "@/lib/calendar/google";
 import { countryFlag } from "@/lib/flags/country";
 import type { TeamLite } from "@/lib/queries/dashboard";
+
+/** Emoji de bandera de un equipo: usa el flag si ya es emoji, si no lo deriva del nombre. */
+function teamFlagEmoji(t: TeamLite): string {
+  if (t.flag && !/^https?:\/\//.test(t.flag)) return t.flag;
+  return countryFlag(t.name) ?? "";
+}
 
 const REFEREE_ROLE: Record<string, string> = {
   REFEREE: "Árbitro",
@@ -61,13 +68,17 @@ export default async function CargarMatchPage({
   const kickoff = new Date(m.kickoffAt);
   const editable = m.status === "scheduled" && isPredictionEditable(kickoff);
   const finished = m.status === "finished";
+  // Desde Octavos, los pronósticos ajenos recién se ven al bloquearse el partido.
+  const othersVisible = othersPicksVisible(m.stageSortOrder, kickoff);
+  // Alerta roja: arranca en <2h y no lo cargaste.
+  const showSoonAlert = !finished && !m.myPred && isMatchSoon(kickoff);
   const playable = m.homeTeamId !== null && m.awayTeamId !== null;
   const [prevMatchId, nextMatchId] = await Promise.all([
     getPrevMatchId(supabase, m.kickoffAt, m.id),
     getNextMatchId(supabase, m.kickoffAt, m.id),
   ]);
   const navHref = (id: string) => `/cargar/${id}?from=${encodeURIComponent(back)}`;
-  const friendPicks = playable ? await getFriendPicks(supabase, user.id, matchId) : [];
+  const friendPicks = playable && othersVisible ? await getFriendPicks(supabase, user.id, matchId) : [];
   const comments = playable ? await getComments(supabase, matchId) : [];
 
   return (
@@ -87,6 +98,13 @@ export default async function CargarMatchPage({
       </header>
 
       <div className="flex flex-col gap-5 py-5">
+        {showSoonAlert && (
+          <SoonAlert
+            match={{ id: m.id, kickoffAt: m.kickoffAt, home: m.home, away: m.away }}
+            className="mx-4"
+          />
+        )}
+
         {/* Partido */}
         <div className="mx-4 ds-pitch border-pixel-thick shadow-pixel">
           <div className="flex items-center justify-around py-5 px-3">
@@ -108,6 +126,8 @@ export default async function CargarMatchPage({
                 href={googleCalendarUrl({
                   homeName: m.home.name,
                   awayName: m.away.name,
+                  homeFlag: teamFlagEmoji(m.home),
+                  awayFlag: teamFlagEmoji(m.away),
                   kickoffISO: m.kickoffAt,
                   stageName: m.stageName,
                   matchday: m.matchday,
@@ -171,16 +191,26 @@ export default async function CargarMatchPage({
           </div>
         )}
 
-        {/* Pronósticos del grupo */}
-        {playable && (
-          <FriendPicks
-            picks={friendPicks}
-            title={finished ? "Análisis del grupo · quién sumó" : "Pronósticos del grupo"}
-            reveal={finished}
-            home={m.home}
-            away={m.away}
-          />
-        )}
+        {/* Pronósticos del grupo (desde Octavos, ocultos hasta el cierre) */}
+        {playable &&
+          (othersVisible ? (
+            <FriendPicks
+              picks={friendPicks}
+              title={finished ? "Análisis del grupo · quién sumó" : "Pronósticos del grupo"}
+              reveal={finished}
+              home={m.home}
+              away={m.away}
+            />
+          ) : (
+            <div className="mx-4 flex items-start gap-2 bg-scoreboard-slate border-pixel px-3 py-2">
+              <span className="text-lg">🔒</span>
+              <p className="font-body text-xs text-grey-300">
+                Desde <span className="text-line-white">Octavos</span>, los pronósticos del resto
+                recién se ven cuando el partido se <span className="text-line-white">bloquea</span> (1 h
+                antes de empezar). Hasta entonces, el de cada uno es secreto.
+              </p>
+            </div>
+          ))}
 
         {/* Árbitros (se completan cuando la FIFA los asigna) */}
         {m.referees.length > 0 && (
