@@ -135,18 +135,18 @@ export function PredictionForm({
       <AnimatePresence>
         {confirming && (
           <motion.div
-            className="fixed inset-0 z-[80] flex flex-col items-center justify-center gap-1 bg-black/75 p-4"
+            className="fixed inset-0 z-[80] flex flex-col items-center gap-2 bg-black/80 p-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Cuadro de diálogo flotando por encima del personaje */}
+            {/* Cuadro de diálogo flotando arriba, apuntando al personaje */}
             <motion.div
               initial={{ opacity: 0, y: 24, scale: 0.85 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.9 }}
               transition={{ type: "spring", stiffness: 420, damping: 22, delay: 0.06 }}
-              className="relative z-10 w-full max-w-xs bg-scoreboard-black border-pixel-thick shadow-pixel-lg p-4"
+              className="relative z-10 mt-1 w-full max-w-xs shrink-0 bg-scoreboard-black border-pixel-thick shadow-pixel-lg p-4"
             >
               <p className="font-display text-line-white text-[11px] text-center leading-relaxed mb-4">
                 Esa boludes vas a cagar?
@@ -172,18 +172,17 @@ export function PredictionForm({
               <div className="absolute left-1/2 -bottom-[14px] -translate-x-1/2 h-0 w-0 border-l-[10px] border-r-[10px] border-t-[14px] border-l-transparent border-r-transparent border-t-scoreboard-black" />
             </motion.div>
 
-            {/* Personaje (cambia aleatorio en cada apertura) */}
+            {/* Personaje gigante: ocupa todo el alto restante (parece que habla) */}
             <motion.img
               key={charIdx}
               src={`/pixelart/${CHARACTERS[charIdx] ?? CHARACTERS[0]}`}
               alt=""
               draggable={false}
-              initial={{ opacity: 0, y: 40, scale: 0.8 }}
+              initial={{ opacity: 0, y: 40, scale: 0.85 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.9 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              style={{ imageRendering: "pixelated" }}
-              className="h-44 w-44 object-contain sm:h-52 sm:w-52"
+              className="min-h-0 w-full flex-1 object-contain"
             />
           </motion.div>
         )}
