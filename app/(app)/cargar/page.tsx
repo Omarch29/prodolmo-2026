@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCargarMatches } from "@/lib/queries/cargar";
-import { isPredictionEditable } from "@/lib/config";
+import { isPredictionEditable, PREDICTION_LOCK_HOURS } from "@/lib/config";
 import { CargarList } from "@/components/cargar/CargarList";
 
 export default async function CargarPage() {
@@ -29,6 +29,15 @@ export default async function CargarPage() {
           {pendientes} SIN CARGAR
         </span>
       </header>
+
+      <div className="mx-4 mt-4 flex items-start gap-2 bg-scoreboard-slate border-pixel border-l-[6px] border-l-goal-orange px-3 py-2">
+        <span className="text-lg">⏰</span>
+        <p className="font-body text-xs text-grey-300">
+          Cargá antes de que falte <strong className="text-line-white">{PREDICTION_LOCK_HOURS} hora</strong> para cada
+          partido — después se <strong className="text-line-white">bloquea</strong>. Desde Octavos, los pronósticos del
+          resto recién se ven al bloquearse el partido.
+        </p>
+      </div>
 
       <div className="py-5">
         {matches.length === 0 ? (
