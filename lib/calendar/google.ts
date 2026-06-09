@@ -6,11 +6,14 @@
  * con `dates=<inicio>/<fin>` en UTC compacto (YYYYMMDDTHHMMSSZ).
  */
 export type MatchCalendarEvent = {
-  homeName: string;
-  awayName: string;
-  /** Emoji de bandera (opcional) para anteponer al nombre en el título. */
+  homeCode: string;
+  awayCode: string;
+  /** Emoji de bandera (opcional) para anteponer al código en el título. */
   homeFlag?: string;
   awayFlag?: string;
+  /** Nombres completos (opcional) para la descripción del evento. */
+  homeName?: string;
+  awayName?: string;
   /** Kickoff en ISO (timestamptz UTC). */
   kickoffISO: string;
   stageName?: string;
@@ -28,10 +31,12 @@ export function googleCalendarUrl(ev: MatchCalendarEvent): string {
   const start = new Date(ev.kickoffISO);
   const end = new Date(start.getTime() + (ev.durationMinutes ?? 120) * 60_000);
 
-  const h = ev.homeFlag ? `${ev.homeFlag} ${ev.homeName}` : ev.homeName;
-  const a = ev.awayFlag ? `${ev.awayFlag} ${ev.awayName}` : ev.awayName;
-  const title = `${h} vs ${a} — Mundial 2026`;
-  const details = [ev.stageName, ev.matchday ? `Fecha ${ev.matchday}` : null]
+  // Título compacto y fácil de identificar: [bandera] CODE - [bandera] CODE.
+  const h = ev.homeFlag ? `${ev.homeFlag} ${ev.homeCode}` : ev.homeCode;
+  const a = ev.awayFlag ? `${ev.awayFlag} ${ev.awayCode}` : ev.awayCode;
+  const title = `${h} - ${a}`;
+  const matchup = ev.homeName && ev.awayName ? `${ev.homeName} vs ${ev.awayName}` : null;
+  const details = ["Mundial 2026", matchup, ev.stageName, ev.matchday ? `Fecha ${ev.matchday}` : null]
     .filter((p): p is string => Boolean(p))
     .join(" · ");
 
