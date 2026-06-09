@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { CHAMPION_BONUS } from "@/lib/queries/champion";
+import { PREDICTION_LOCK_HOURS } from "@/lib/config";
 
 export default async function InfoPage() {
   const supabase = await createClient();
@@ -36,6 +37,30 @@ export default async function InfoPage() {
               Acertás el <strong>marcador exacto</strong>.
             </li>
           </ul>
+        </section>
+
+        {/* Carga y visibilidad */}
+        <section className="mx-4 bg-scoreboard-black border-pixel-thick shadow-pixel-sm p-4 flex flex-col gap-3">
+          <div className="font-display text-[10px] tracking-[1px] text-line-white">🔒 CARGA Y VISIBILIDAD</div>
+
+          {/* Alerta: cierre 1h antes */}
+          <div className="flex items-start gap-2 bg-scoreboard-slate border-pixel border-l-[6px] border-l-goal-orange px-3 py-2">
+            <span className="text-lg">⏰</span>
+            <p className="font-body text-sm text-line-white">
+              <strong>Cargá antes de que falte {PREDICTION_LOCK_HOURS} hora</strong> para el partido.
+              A partir de ahí la carga se <strong>bloquea</strong>: ya no podés cargar ni editar tu
+              pronóstico.
+            </p>
+          </div>
+
+          <p className="font-body text-sm text-grey-300">
+            Para que la competencia sea justa,{" "}
+            <strong className="text-line-white">desde Octavos de final</strong> no vas a ver los
+            pronósticos de los demás hasta que el partido se{" "}
+            <strong className="text-line-white">bloquee</strong> ({PREDICTION_LOCK_HOURS} hora antes
+            de empezar). En <strong className="text-line-white">Fase de grupos</strong> y{" "}
+            <strong className="text-line-white">Ronda de 32</strong> se ven siempre.
+          </p>
         </section>
 
         {/* Por ronda */}
