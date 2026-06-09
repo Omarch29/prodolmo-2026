@@ -76,5 +76,9 @@ export async function savePrediction(
   if (error) return { error: "No se pudo guardar el pronóstico." };
 
   revalidatePath("/cargar");
-  redirect("/cargar");
+  // Volver al filtro de origen del listado (tab/sección/día). Sanitizado para
+  // evitar open-redirects: solo rutas internas de /cargar.
+  const backRaw = formData.get("back");
+  const back = typeof backRaw === "string" && backRaw.startsWith("/cargar") ? backRaw : "/cargar";
+  redirect(back);
 }

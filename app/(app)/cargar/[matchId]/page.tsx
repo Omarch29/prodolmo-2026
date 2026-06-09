@@ -32,10 +32,15 @@ function Team({ t }: { t: TeamLite }) {
 
 export default async function CargarMatchPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ matchId: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { matchId } = await params;
+  // A dónde volver tras guardar: el filtro de origen del listado (sanitizado).
+  const { from } = await searchParams;
+  const back = typeof from === "string" && from.startsWith("/cargar") ? from : "/cargar";
   const supabase = await createClient();
   const {
     data: { user },
@@ -116,6 +121,7 @@ export default async function CargarMatchPage({
             awayTeamId={m.awayTeamId}
             isKnockout={m.isKnockout}
             initial={m.myPred}
+            back={back}
           />
         ) : (
           <div className="mx-4 flex flex-col gap-3">
