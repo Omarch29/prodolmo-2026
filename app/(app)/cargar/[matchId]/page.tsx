@@ -19,12 +19,13 @@ import { Flag } from "@/components/ui/Flag";
 import { buttonClassName } from "@/components/ui/Button";
 import { googleCalendarUrl } from "@/lib/calendar/google";
 import { countryFlag } from "@/lib/flags/country";
+import { flagEmojiForCode } from "@/lib/flags/team-flag";
 import type { TeamLite } from "@/lib/queries/dashboard";
 
-/** Emoji de bandera de un equipo: usa el flag si ya es emoji, si no lo deriva del nombre. */
+/** Emoji de bandera de un equipo: el flag si ya es emoji (seed), si no por código FIFA. */
 function teamFlagEmoji(t: TeamLite): string {
   if (t.flag && !/^https?:\/\//.test(t.flag)) return t.flag;
-  return countryFlag(t.name) ?? "";
+  return flagEmojiForCode(t.code);
 }
 
 const REFEREE_ROLE: Record<string, string> = {
@@ -124,6 +125,8 @@ export default async function CargarMatchPage({
               <Countdown target={m.kickoffAt} />
               <a
                 href={googleCalendarUrl({
+                  homeCode: m.home.code,
+                  awayCode: m.away.code,
                   homeName: m.home.name,
                   awayName: m.away.name,
                   homeFlag: teamFlagEmoji(m.home),
