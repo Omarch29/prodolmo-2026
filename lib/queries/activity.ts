@@ -6,6 +6,7 @@ export type TeamMini = { code: string; flag: string | null };
 export type PredictionActivity = {
   matchId: string;
   kickoffAt: string;
+  stageSortOrder: number;
   home: TeamMini;
   away: TeamMini;
   predHome: number;
@@ -40,6 +41,7 @@ export async function getPlayerPredictions(
     .select(
       `pred_home_score, pred_away_score, points_earned,
        match:matches!inner(id, kickoff_at, status, home_score, away_score,
+         stage:stages(sort_order),
          home_team:teams!matches_home_team_id_fkey(code, flag_url),
          away_team:teams!matches_away_team_id_fkey(code, flag_url))`,
     )
@@ -52,6 +54,7 @@ export async function getPlayerPredictions(
       return {
         matchId: m.id,
         kickoffAt: m.kickoff_at,
+        stageSortOrder: m.stage?.sort_order ?? 99,
         home: team(m.home_team),
         away: team(m.away_team),
         predHome: p.pred_home_score,

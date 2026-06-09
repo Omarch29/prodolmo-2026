@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Avatar } from "@/components/ui/Avatar";
+import { AvatarHoverCard } from "@/components/ui/AvatarHoverCard";
 import { NextMatchCard } from "@/components/dashboard/NextMatchCard";
 import { DailyMessages } from "@/components/dashboard/DailyMessages";
 import { cn } from "@/lib/utils";
@@ -43,7 +43,7 @@ function MiniStanding({
           )}
         >
           <span className="w-5 text-center font-display text-[10px] text-grey-300">{r.rank}</span>
-          <Avatar name={r.displayName} src={r.avatarUrl} size={24} />
+          <AvatarHoverCard userId={r.userId} name={r.displayName} avatarUrl={r.avatarUrl} size={24} link={false} />
           <span className="flex-1 truncate font-body text-sm text-line-white">
             {r.displayName}
             {r.rank === 1 ? " 👑" : ""}

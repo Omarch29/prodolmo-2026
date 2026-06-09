@@ -8,6 +8,9 @@
 export type MatchCalendarEvent = {
   homeName: string;
   awayName: string;
+  /** Emoji de bandera (opcional) para anteponer al nombre en el título. */
+  homeFlag?: string;
+  awayFlag?: string;
   /** Kickoff en ISO (timestamptz UTC). */
   kickoffISO: string;
   stageName?: string;
@@ -25,7 +28,9 @@ export function googleCalendarUrl(ev: MatchCalendarEvent): string {
   const start = new Date(ev.kickoffISO);
   const end = new Date(start.getTime() + (ev.durationMinutes ?? 120) * 60_000);
 
-  const title = `${ev.homeName} vs ${ev.awayName} — Mundial 2026`;
+  const h = ev.homeFlag ? `${ev.homeFlag} ${ev.homeName}` : ev.homeName;
+  const a = ev.awayFlag ? `${ev.awayFlag} ${ev.awayName}` : ev.awayName;
+  const title = `${h} vs ${a} — Mundial 2026`;
   const details = [ev.stageName, ev.matchday ? `Fecha ${ev.matchday}` : null]
     .filter((p): p is string => Boolean(p))
     .join(" · ");

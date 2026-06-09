@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Avatar } from "@/components/ui/Avatar";
+import { AvatarHoverCard } from "@/components/ui/AvatarHoverCard";
 import { cn } from "@/lib/utils";
 import type { StandingRow } from "@/lib/queries/standings";
 
@@ -27,7 +27,13 @@ export function LeaderboardRow({ row, isMe }: { row: StandingRow; isMe: boolean 
         {row.rank}
       </span>
 
-      <Avatar name={row.displayName} src={row.avatarUrl} size={32} />
+      <AvatarHoverCard
+        userId={row.userId}
+        name={row.displayName}
+        avatarUrl={row.avatarUrl}
+        size={32}
+        link={false}
+      />
 
       <span className="flex-1 min-w-0">
         <span className="font-body text-sm text-line-white truncate block">

@@ -38,4 +38,11 @@ describe("googleCalendarUrl", () => {
     ).searchParams;
     expect(params.has("details")).toBe(false);
   });
+
+  it("antepone las banderas a cada equipo en el título", () => {
+    const params = new URL(
+      googleCalendarUrl({ ...base, homeFlag: "🇦🇷", awayFlag: "🇧🇷" }),
+    ).searchParams;
+    expect(params.get("text")).toBe("🇦🇷 Argentina vs 🇧🇷 Brasil — Mundial 2026");
+  });
 });

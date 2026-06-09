@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import { SOON_ALERT_HOURS } from "@/lib/config";
 
 export type TeamLite = { name: string; code: string; flag: string | null };
 
@@ -63,6 +64,54 @@ export async function getNextMatch(
     away: toTeam(next.away_team),
     alreadyPredicted: predicted.has(next.id),
   };
+}
+
+export type SoonMatch = {
+  id: string;
+  kickoffAt: string;
+  home: TeamLite;
+  away: TeamLite;
+};
+
+/**
+ * Partidos que arrancan dentro de las próximas SOON_ALERT_HOURS y que el
+ * usuario TODAVÍA no cargó (para la alerta roja en inicio y detalle).
+ */
+export async function getPendingSoonMatches(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<SoonMatch[]> {
+  const now = new Date();
+  const until = new Date(now.getTime() + SOON_ALERT_HOURS * 60 * 60 * 1000).toISOString();
+
+  const { data: matches } = await supabase
+    .from("matches")
+    .select(
+      `id, kickoff_at,
+       home_team:teams!matches_home_team_id_fkey(name, code, flag_url),
+       away_team:teams!matches_away_team_id_fkey(name, code, flag_url)`,
+    )
+    .eq("status", "scheduled")
+    .gt("kickoff_at", now.toISOString())
+    .lte("kickoff_at", until)
+    .order("kickoff_at", { ascending: true });
+
+  if (!matches || matches.length === 0) return [];
+
+  const { data: myPreds } = await supabase
+    .from("predictions")
+    .select("match_id")
+    .eq("user_id", userId);
+  const predicted = new Set((myPreds ?? []).map((p) => p.match_id));
+
+  return matches
+    .filter((m) => !predicted.has(m.id) && m.home_team && m.away_team)
+    .map((m) => ({
+      id: m.id,
+      kickoffAt: m.kickoff_at,
+      home: toTeam(m.home_team),
+      away: toTeam(m.away_team),
+    }));
 }
 
 export type DailyMessage = {

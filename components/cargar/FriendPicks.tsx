@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Avatar } from "@/components/ui/Avatar";
+import { AvatarHoverCard } from "@/components/ui/AvatarHoverCard";
 import { Flag } from "@/components/ui/Flag";
 import { cn } from "@/lib/utils";
 import type { FriendPick } from "@/lib/queries/cargar";
@@ -36,10 +36,15 @@ export function FriendPicks({
                 hit && "bg-pitch-green-darker",
               )}
             >
-              <Link href={`/jugador/${p.userId}`} className="flex items-center gap-2 flex-1 min-w-0">
-                <Avatar name={p.displayName} src={p.avatarUrl} size={28} />
-                <span className="font-body text-sm text-line-white truncate">{p.displayName}</span>
-              </Link>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <AvatarHoverCard userId={p.userId} name={p.displayName} avatarUrl={p.avatarUrl} size={28} />
+                <Link
+                  href={`/jugador/${p.userId}`}
+                  className="font-body text-sm text-line-white truncate hover:underline"
+                >
+                  {p.displayName}
+                </Link>
+              </div>
               <span className="flex items-center gap-1 font-mono text-card-yellow text-lg shrink-0">
                 <Flag flag={home.flag} size={16} />
                 {p.home}-{p.away}
