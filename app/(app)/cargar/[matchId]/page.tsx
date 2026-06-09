@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getMatchForPrediction, getFriendPicks, getNextMatchId } from "@/lib/queries/cargar";
+import {
+  getMatchForPrediction,
+  getFriendPicks,
+  getNextMatchId,
+  getPrevMatchId,
+} from "@/lib/queries/cargar";
 import { getComments } from "@/lib/queries/comments";
 import { isPredictionEditable } from "@/lib/config";
 import { PredictionForm } from "@/components/cargar/PredictionForm";
@@ -57,7 +62,11 @@ export default async function CargarMatchPage({
   const editable = m.status === "scheduled" && isPredictionEditable(kickoff);
   const finished = m.status === "finished";
   const playable = m.homeTeamId !== null && m.awayTeamId !== null;
-  const nextMatchId = await getNextMatchId(supabase, m.kickoffAt, m.id);
+  const [prevMatchId, nextMatchId] = await Promise.all([
+    getPrevMatchId(supabase, m.kickoffAt, m.id),
+    getNextMatchId(supabase, m.kickoffAt, m.id),
+  ]);
+  const navHref = (id: string) => `/cargar/${id}?from=${encodeURIComponent(back)}`;
   const friendPicks = playable ? await getFriendPicks(supabase, user.id, matchId) : [];
   const comments = playable ? await getComments(supabase, matchId) : [];
 
@@ -95,31 +104,23 @@ export default async function CargarMatchPage({
             <div className="flex flex-col items-center gap-2 pb-4">
               <span className="font-display text-[8px] tracking-[1.5px] text-grey-300">EMPIEZA EN</span>
               <Countdown target={m.kickoffAt} />
+              <a
+                href={googleCalendarUrl({
+                  homeName: m.home.name,
+                  awayName: m.away.name,
+                  kickoffISO: m.kickoffAt,
+                  stageName: m.stageName,
+                  matchday: m.matchday,
+                })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-display text-[8px] tracking-[1px] text-pitch-green-lighter underline underline-offset-2 mt-1"
+              >
+                📅 AGENDAR EN GOOGLE CALENDAR
+              </a>
             </div>
           )}
         </div>
-
-        {/* Agregar el partido al Google Calendar */}
-        {!finished && (
-          <a
-            href={googleCalendarUrl({
-              homeName: m.home.name,
-              awayName: m.away.name,
-              kickoffISO: m.kickoffAt,
-              stageName: m.stageName,
-              matchday: m.matchday,
-            })}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={buttonClassName({
-              variant: "secondary",
-              size: "sm",
-              className: "mx-4 flex items-center justify-center gap-2",
-            })}
-          >
-            📅 Agregar a Google Calendar
-          </a>
-        )}
 
         {/* Previa generada por IA */}
         {!finished && m.aiPreview && (
@@ -210,18 +211,30 @@ export default async function CargarMatchPage({
         {/* Comentarios */}
         {playable && <MatchComments matchId={m.id} comments={comments} />}
 
-        {/* Ir al siguiente partido (conserva el filtro de origen) */}
-        {nextMatchId && (
-          <Link
-            href={`/cargar/${nextMatchId}?from=${encodeURIComponent(back)}`}
-            className={buttonClassName({
-              variant: "primary",
-              size: "sm",
-              className: "mx-4 flex items-center justify-center gap-2",
-            })}
-          >
-            Siguiente partido →
-          </Link>
+        {/* Navegación entre partidos (conserva el filtro de origen) */}
+        {(prevMatchId || nextMatchId) && (
+          <nav className="mx-4 grid grid-cols-2 gap-2">
+            {prevMatchId ? (
+              <Link
+                href={navHref(prevMatchId)}
+                className={buttonClassName({ variant: "ghost", size: "sm", className: "justify-center" })}
+              >
+                ← Anterior
+              </Link>
+            ) : (
+              <span />
+            )}
+            {nextMatchId ? (
+              <Link
+                href={navHref(nextMatchId)}
+                className={buttonClassName({ variant: "secondary", size: "sm", className: "justify-center" })}
+              >
+                Siguiente →
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
         )}
       </div>
     </div>
