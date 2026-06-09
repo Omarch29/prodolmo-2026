@@ -135,6 +135,27 @@ export async function getMatchForPrediction(
   };
 }
 
+/**
+ * id del partido siguiente por kickoff (para navegar al próximo desde el
+ * detalle). Ordena por (kickoff, id) para resolver partidos simultáneos.
+ */
+export async function getNextMatchId(
+  supabase: SupabaseClient<Database>,
+  currentKickoffISO: string,
+  currentMatchId: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("matches")
+    .select("id, kickoff_at")
+    .gte("kickoff_at", currentKickoffISO)
+    .order("kickoff_at", { ascending: true })
+    .order("id", { ascending: true })
+    .limit(16);
+  const rows = data ?? [];
+  const idx = rows.findIndex((r) => r.id === currentMatchId);
+  return (idx === -1 ? rows[0]?.id : rows[idx + 1]?.id) ?? null;
+}
+
 export type FriendPick = {
   displayName: string;
   home: number;

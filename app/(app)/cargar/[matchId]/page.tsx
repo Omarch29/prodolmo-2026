@@ -1,6 +1,7 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getMatchForPrediction, getFriendPicks } from "@/lib/queries/cargar";
+import { getMatchForPrediction, getFriendPicks, getNextMatchId } from "@/lib/queries/cargar";
 import { getComments } from "@/lib/queries/comments";
 import { isPredictionEditable } from "@/lib/config";
 import { PredictionForm } from "@/components/cargar/PredictionForm";
@@ -56,6 +57,7 @@ export default async function CargarMatchPage({
   const editable = m.status === "scheduled" && isPredictionEditable(kickoff);
   const finished = m.status === "finished";
   const playable = m.homeTeamId !== null && m.awayTeamId !== null;
+  const nextMatchId = await getNextMatchId(supabase, m.kickoffAt, m.id);
   const friendPicks = playable ? await getFriendPicks(supabase, user.id, matchId) : [];
   const comments = playable ? await getComments(supabase, matchId) : [];
 
@@ -207,6 +209,20 @@ export default async function CargarMatchPage({
 
         {/* Comentarios */}
         {playable && <MatchComments matchId={m.id} comments={comments} />}
+
+        {/* Ir al siguiente partido (conserva el filtro de origen) */}
+        {nextMatchId && (
+          <Link
+            href={`/cargar/${nextMatchId}?from=${encodeURIComponent(back)}`}
+            className={buttonClassName({
+              variant: "primary",
+              size: "sm",
+              className: "mx-4 flex items-center justify-center gap-2",
+            })}
+          >
+            Siguiente partido →
+          </Link>
+        )}
       </div>
     </div>
   );
