@@ -52,7 +52,9 @@ const TeamSide = ({
   </span>
 );
 
-export function MatchListRow({ m }: { m: CargarMatch }) {
+export function MatchListRow({ m, backTo }: { m: CargarMatch; backTo?: string }) {
+  // Llevamos el filtro de origen (?from=) para volver ahí tras guardar.
+  const href = `/cargar/${m.id}${backTo ? `?from=${encodeURIComponent(backTo)}` : ""}`;
   // ---- Jugado (finalizado): resultado real + mi pronóstico + puntos ----
   if (m.status === "finished") {
     const hit = (m.myPoints ?? 0) > 0;
@@ -97,7 +99,7 @@ export function MatchListRow({ m }: { m: CargarMatch }) {
                 {m.myPoints && m.myPoints > 0 ? `+${m.myPoints}` : "0"}
               </span>
             )}
-            <Link href={`/cargar/${m.id}`} className={buttonClassName({ size: "sm", variant: "ghost" })}>
+            <Link href={href} className={buttonClassName({ size: "sm", variant: "ghost" })}>
               Ver
             </Link>
           </span>
@@ -134,7 +136,7 @@ export function MatchListRow({ m }: { m: CargarMatch }) {
       <div className="flex items-center justify-between gap-2 mt-3">
         <Countdown target={m.kickoffAt} />
         {meta.cta && (
-          <Link href={`/cargar/${m.id}`} className={buttonClassName({ size: "sm", variant: ctaVariant })}>
+          <Link href={href} className={buttonClassName({ size: "sm", variant: ctaVariant })}>
             {meta.cta}
           </Link>
         )}

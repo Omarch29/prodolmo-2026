@@ -18,6 +18,7 @@ export function PredictionForm({
   awayTeamId,
   isKnockout,
   initial,
+  back = "/cargar",
 }: {
   matchId: string;
   home: TeamLite;
@@ -26,6 +27,7 @@ export function PredictionForm({
   awayTeamId: string | null;
   isKnockout: boolean;
   initial: { home: number; away: number; winnerTeamId: string | null } | null;
+  back?: string;
 }) {
   const [h, setH] = useState(initial?.home ?? 0);
   const [a, setA] = useState(initial?.away ?? 0);
@@ -37,6 +39,7 @@ export function PredictionForm({
   return (
     <form action={action} className="flex flex-col gap-4 px-4">
       <input type="hidden" name="matchId" value={matchId} />
+      <input type="hidden" name="back" value={back} />
       <input type="hidden" name="predHome" value={h} />
       <input type="hidden" name="predAway" value={a} />
       {tie && <input type="hidden" name="winnerTeamId" value={winner} />}

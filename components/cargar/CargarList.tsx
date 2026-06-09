@@ -66,14 +66,22 @@ export function CargarList({ matches }: { matches: CargarMatch[] }) {
     ? sectionMatches.filter((m) => dayKey(m.kickoffAt) === effectiveDay)
     : sectionMatches;
 
-  // Refleja el filtro actual en la URL sin disparar navegación/refetch.
-  const persist = (t: Tab, s: string, d: string | null) => {
+  // URL de /cargar para un filtro dado (tab/sección/día).
+  const buildHref = (t: Tab, s: string, d: string | null) => {
     const params = new URLSearchParams();
     if (t !== "play") params.set("tab", t);
     if (s) params.set("sec", s);
     if (d) params.set("day", d);
     const qs = params.toString();
-    window.history.replaceState(window.history.state, "", qs ? `/cargar?${qs}` : "/cargar");
+    return qs ? `/cargar?${qs}` : "/cargar";
+  };
+
+  // A dónde volver desde el detalle de un partido: al filtro visible actual.
+  const backTo = buildHref(tab, sectionKey, effectiveDay);
+
+  // Refleja el filtro actual en la URL sin disparar navegación/refetch.
+  const persist = (t: Tab, s: string, d: string | null) => {
+    window.history.replaceState(window.history.state, "", buildHref(t, s, d));
   };
 
   const selectTab = (t: Tab) => {
@@ -165,7 +173,7 @@ export function CargarList({ matches }: { matches: CargarMatch[] }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.15, delay: Math.min(i * 0.015, 0.25) }}
               >
-                <MatchListRow m={m} />
+                <MatchListRow m={m} backTo={backTo} />
               </motion.div>
             ))}
           </div>
