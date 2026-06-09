@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { savePrediction, type SavePredictionState } from "@/actions/predictions";
 import { Stepper } from "@/components/ui/Stepper";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +10,22 @@ import { cn } from "@/lib/utils";
 import type { TeamLite } from "@/lib/queries/dashboard";
 
 const initialState: SavePredictionState = { error: null };
+
+// Feature graciosa (rama fun): al guardar, un personaje random aparece y un
+// globo de diálogo flotando arriba pregunta si estás seguro. Imágenes en
+// public/pixelart/ (redimensionadas desde docs/IMAGES/PixelArt).
+const CHARACTERS = [
+  "Lito1.png", "Mateo1.png", "Pablo2.png", "Lucho1.png", "Pablo1.png", "Jula1.png",
+  "makki1.png", "makki3.png", "makki2.png", "Santi2.png", "matt2.png", "Santi1.png",
+  "Matt1.png", "Gabo1.png", "fer2.png", "Carlos1.png", "fer1.png",
+] as const;
+
+/** Índice random distinto del actual (para que el personaje cambie en cada apertura). */
+function randomCharacter(exclude: number): number {
+  if (CHARACTERS.length <= 1) return 0;
+  const i = Math.floor(Math.random() * (CHARACTERS.length - 1));
+  return i >= exclude ? i + 1 : i;
+}
 
 export function PredictionForm({
   matchId,
@@ -37,6 +54,14 @@ export function PredictionForm({
   const triggerAi = () => {
     setAiState("shown");
     setTimeout(() => setAiState("gone"), 2600);
+  };
+
+  // Modal de confirmación con personaje random (rama fun).
+  const [confirming, setConfirming] = useState(false);
+  const [charIdx, setCharIdx] = useState(0);
+  const openConfirm = () => {
+    setCharIdx((c) => randomCharacter(c));
+    setConfirming(true);
   };
 
   const tie = isKnockout && h === a;
@@ -103,9 +128,66 @@ export function PredictionForm({
         </p>
       )}
 
-      <Button type="submit" block disabled={pending}>
-        {pending ? "Guardando..." : "⚽ Guardar pronóstico"}
+      <Button type="button" block onClick={openConfirm} disabled={pending}>
+        ⚽ Guardar pronóstico
       </Button>
+
+      <AnimatePresence>
+        {confirming && (
+          <motion.div
+            className="fixed inset-0 z-[80] flex flex-col items-center justify-center gap-1 bg-black/75 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Cuadro de diálogo flotando por encima del personaje */}
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.85 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 420, damping: 22, delay: 0.06 }}
+              className="relative z-10 w-full max-w-xs bg-scoreboard-black border-pixel-thick shadow-pixel-lg p-4"
+            >
+              <p className="font-display text-line-white text-[11px] text-center leading-relaxed mb-4">
+                Esa boludes vas a cagar?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="flex-1 font-display text-[9px] tracking-[1px] border-pixel px-2 py-2.5 bg-pitch-green text-ink shadow-pixel-xs active:translate-x-[2px] active:translate-y-[2px] active:shadow-pixel-pressed disabled:opacity-60"
+                >
+                  {pending ? "GUARDANDO..." : "✓ GUARDAR RESULTADO"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirming(false)}
+                  disabled={pending}
+                  className="flex-1 font-display text-[9px] tracking-[1px] border-pixel px-2 py-2.5 bg-card-red text-line-white shadow-pixel-xs active:translate-x-[2px] active:translate-y-[2px] active:shadow-pixel-pressed disabled:opacity-60"
+                >
+                  ✕ CANCELAR
+                </button>
+              </div>
+              {/* colita del globo apuntando al personaje */}
+              <div className="absolute left-1/2 -bottom-[14px] -translate-x-1/2 h-0 w-0 border-l-[10px] border-r-[10px] border-t-[14px] border-l-transparent border-r-transparent border-t-scoreboard-black" />
+            </motion.div>
+
+            {/* Personaje (cambia aleatorio en cada apertura) */}
+            <motion.img
+              key={charIdx}
+              src={`/pixelart/${CHARACTERS[charIdx] ?? CHARACTERS[0]}`}
+              alt=""
+              draggable={false}
+              initial={{ opacity: 0, y: 40, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              style={{ imageRendering: "pixelated" }}
+              className="h-44 w-44 object-contain sm:h-52 sm:w-52"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </form>
   );
 }
