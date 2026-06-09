@@ -156,6 +156,24 @@ export async function getNextMatchId(
   return (idx === -1 ? rows[0]?.id : rows[idx + 1]?.id) ?? null;
 }
 
+/** id del partido anterior por kickoff (espejo de getNextMatchId). */
+export async function getPrevMatchId(
+  supabase: SupabaseClient<Database>,
+  currentKickoffISO: string,
+  currentMatchId: string,
+): Promise<string | null> {
+  const { data } = await supabase
+    .from("matches")
+    .select("id, kickoff_at")
+    .lte("kickoff_at", currentKickoffISO)
+    .order("kickoff_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(16);
+  const rows = data ?? [];
+  const idx = rows.findIndex((r) => r.id === currentMatchId);
+  return (idx === -1 ? rows[0]?.id : rows[idx + 1]?.id) ?? null;
+}
+
 export type FriendPick = {
   displayName: string;
   home: number;
