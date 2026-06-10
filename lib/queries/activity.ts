@@ -98,3 +98,47 @@ export async function getPlayerComments(
       away: team(c.match!.away_team),
     }));
 }
+
+export type RecentComment = {
+  id: string;
+  body: string;
+  createdAt: string;
+  matchId: string;
+  authorId: string;
+  author: string;
+  avatarUrl: string | null;
+  home: TeamMini;
+  away: TeamMini;
+};
+
+/** Últimos comentarios de todo el grupo (para el feed del inicio). */
+export async function getRecentComments(
+  supabase: SupabaseClient<Database>,
+  limit = 6,
+): Promise<RecentComment[]> {
+  const { data } = await supabase
+    .from("comments")
+    .select(
+      `id, body, created_at, user_id,
+       profile:profiles(display_name, avatar_url),
+       match:matches(id,
+         home_team:teams!matches_home_team_id_fkey(code, flag_url),
+         away_team:teams!matches_away_team_id_fkey(code, flag_url))`,
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  return (data ?? [])
+    .filter((c) => c.match)
+    .map((c) => ({
+      id: c.id,
+      body: htmlToText(c.body),
+      createdAt: c.created_at,
+      matchId: c.match!.id,
+      authorId: c.user_id,
+      author: c.profile?.display_name ?? "?",
+      avatarUrl: c.profile?.avatar_url ?? null,
+      home: team(c.match!.home_team),
+      away: team(c.match!.away_team),
+    }));
+}

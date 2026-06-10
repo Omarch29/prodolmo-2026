@@ -2,8 +2,10 @@ import Link from "next/link";
 import { AvatarHoverCard } from "@/components/ui/AvatarHoverCard";
 import { NextMatchCard } from "@/components/dashboard/NextMatchCard";
 import { DailyMessages } from "@/components/dashboard/DailyMessages";
+import { RecentComments } from "@/components/dashboard/RecentComments";
 import { cn } from "@/lib/utils";
 import type { NextMatch, DailyMessage } from "@/lib/queries/dashboard";
+import type { RecentComment } from "@/lib/queries/activity";
 import type { StandingRow } from "@/lib/queries/standings";
 
 const STRIPES = {
@@ -68,6 +70,7 @@ export function DesktopDashboard({
   nextMatch,
   messages,
   standings,
+  recentComments,
   currentUserId,
 }: {
   displayName: string;
@@ -77,6 +80,7 @@ export function DesktopDashboard({
   nextMatch: NextMatch | null;
   messages: DailyMessage[];
   standings: StandingRow[];
+  recentComments: RecentComment[];
   currentUserId: string;
 }) {
   return (
@@ -114,6 +118,12 @@ export function DesktopDashboard({
           )}
           <div className="font-display text-[11px] tracking-[1px] text-line-white mt-2">📬 TUS MENSAJES</div>
           <DailyMessages messages={messages} bare showTitle={false} />
+          {recentComments.length > 0 && (
+            <>
+              <div className="font-display text-[11px] tracking-[1px] text-line-white mt-2">💬 ÚLTIMOS COMENTARIOS</div>
+              <RecentComments comments={recentComments} bare showTitle={false} />
+            </>
+          )}
         </div>
 
         {/* Columna derecha */}

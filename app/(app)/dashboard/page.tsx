@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { getStandings } from "@/lib/queries/standings";
 import { getNextMatch, getDailyMessages, getPendingSoonMatches } from "@/lib/queries/dashboard";
+import { getRecentComments } from "@/lib/queries/activity";
 import { HeroHeader } from "@/components/dashboard/HeroHeader";
 import { NextMatchCard } from "@/components/dashboard/NextMatchCard";
 import { DailyMessages } from "@/components/dashboard/DailyMessages";
+import { RecentComments } from "@/components/dashboard/RecentComments";
 import { DesktopDashboard } from "@/components/dashboard/DesktopDashboard";
 import { SoonAlert } from "@/components/cargar/SoonAlert";
 
@@ -14,11 +16,12 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) return null; // el layout protegido ya garantiza sesión
 
-  const [standings, nextMatch, messages, pendingSoon] = await Promise.all([
+  const [standings, nextMatch, messages, pendingSoon, recentComments] = await Promise.all([
     getStandings(supabase),
     getNextMatch(supabase, user.id),
     getDailyMessages(supabase, user.id),
     getPendingSoonMatches(supabase, user.id),
+    getRecentComments(supabase),
   ]);
 
   const me = standings.find((s) => s.userId === user.id);
@@ -55,6 +58,7 @@ export default async function DashboardPage() {
             </div>
           )}
           <DailyMessages messages={messages} />
+          <RecentComments comments={recentComments} />
         </div>
       </div>
 
@@ -67,6 +71,7 @@ export default async function DashboardPage() {
         nextMatch={nextMatch}
         messages={messages}
         standings={standings}
+        recentComments={recentComments}
         currentUserId={user.id}
       />
     </>
