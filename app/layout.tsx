@@ -26,12 +26,15 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
+  applicationName: "Prodolmo",
   title: "PRODOLMO · Mundial 2026",
   description: "Prode del Mundial 2026 — pronosticá, sumá puntos y ganale a tus amigos.",
+  // PWA: instalable en iOS con ícono propio y pantalla completa.
+  appleWebApp: { capable: true, title: "Prodolmo", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#161b22",
+  themeColor: "#16a34a",
   width: "device-width",
   initialScale: 1,
 };
