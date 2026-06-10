@@ -135,6 +135,15 @@ Catálogo completo de funcionalidades del sistema. Para el "cómo está hecho" v
 - **GitHub Action** que sincroniza **cada hora en la franja de partidos**
   (14:00–01:00 ART) para resultados al día durante la jornada.
 
+## 📱 PWA (instalable)
+
+- **Prodolmo** se puede **instalar** en el celu ("Agregar a pantalla de inicio"):
+  **ícono propio** y **pantalla completa** (standalone), como app nativa.
+- Manifest (`app/manifest.ts`) + íconos (192/512 + maskable + apple-touch) +
+  `theme-color`. Assets fuente del logo en [`docs/PWA/`](PWA/).
+- Notificaciones push y offline quedan para una **Fase 2** (requieren Service
+  Worker; ver README).
+
 ## 🎨 Diseño y UX
 
 - **Pixel-art** retro: tokens del design system (bordes gruesos, sombras duras sin

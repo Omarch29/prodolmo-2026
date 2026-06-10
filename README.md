@@ -39,7 +39,25 @@ Resumen — el **catálogo completo** está en **[docs/FEATURES.md](docs/FEATURE
 - **IA (Gemini Flash)**: mensajes del día y previas de partido sobre hechos ya
   calculados (degradación elegante sin API key).
 - **Pantalla INFO** que explica el puntaje y las reglas de visibilidad/cierre.
+- **PWA instalable**: agregá **Prodolmo** a la pantalla de inicio (ícono propio,
+  pantalla completa). Ver [PWA](#-pwa).
 - Estética **pixel-art**, **mobile-first**, transiciones y confetti.
+
+## 📱 PWA
+
+**Prodolmo** es una **Progressive Web App instalable**: desde el celu, "Agregar a
+pantalla de inicio" la deja con **ícono propio** y abre en **pantalla completa**
+(sin barra del navegador), como una app nativa.
+
+- **Manifest** (`app/manifest.ts`, nombre `Prodolmo`) + **íconos** (`app/icon.svg`,
+  `app/apple-icon.png`, `app/favicon.ico` y `public/icons/` con los tamaños
+  192/512 y *maskable*). Los tags del `<head>` (manifest, `theme-color`, apple
+  web-app) los inyecta Next por convención.
+- Assets fuente del logo (pelota mascota con banderín "26") en
+  [`docs/PWA/`](docs/PWA/).
+- **Fase 2 (futuro):** Service Worker + **notificaciones push** (recordatorio de
+  cierre, mensaje del día). Requiere SW, suscripciones y `web-push`; en iOS, la
+  PWA instalada e iOS 16.4+.
 
 ## 🧰 Tecnologías
 
