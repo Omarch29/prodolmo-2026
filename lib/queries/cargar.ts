@@ -73,6 +73,8 @@ export type MatchDetail = {
   stageName: string;
   stageSortOrder: number;
   matchday: number | null;
+  groupName: string | null;
+  venue: string | null;
   homeTeamId: string | null;
   awayTeamId: string | null;
   home: TeamLite;
@@ -95,8 +97,9 @@ export async function getMatchForPrediction(
   const { data: m } = await supabase
     .from("matches")
     .select(
-      `id, kickoff_at, status, group_id, matchday, home_team_id, away_team_id, home_score, away_score, ai_preview, referees,
+      `id, kickoff_at, status, group_id, matchday, venue, home_team_id, away_team_id, home_score, away_score, ai_preview, referees,
        stage:stages(name, sort_order),
+       group:groups(name),
        home_team:teams!matches_home_team_id_fkey(name, code, flag_url),
        away_team:teams!matches_away_team_id_fkey(name, code, flag_url)`,
     )
@@ -119,6 +122,8 @@ export async function getMatchForPrediction(
     stageName: m.stage?.name ?? "",
     stageSortOrder: m.stage?.sort_order ?? 99,
     matchday: m.matchday,
+    groupName: m.group?.name ?? null,
+    venue: m.venue,
     homeTeamId: m.home_team_id,
     awayTeamId: m.away_team_id,
     home: toTeam(m.home_team),

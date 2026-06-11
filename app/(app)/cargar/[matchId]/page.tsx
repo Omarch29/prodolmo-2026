@@ -12,13 +12,13 @@ import { isPredictionEditable, othersPicksVisible, isMatchSoon } from "@/lib/con
 import { PredictionForm } from "@/components/cargar/PredictionForm";
 import { FriendPicks } from "@/components/cargar/FriendPicks";
 import { MatchComments } from "@/components/cargar/MatchComments";
+import { MatchDetails } from "@/components/cargar/MatchDetails";
 import { BackButton } from "@/components/cargar/BackButton";
 import { SoonAlert } from "@/components/cargar/SoonAlert";
 import { Countdown } from "@/components/ui/Countdown";
 import { Flag } from "@/components/ui/Flag";
 import { buttonClassName } from "@/components/ui/Button";
 import { googleCalendarUrl } from "@/lib/calendar/google";
-import { countryFlag } from "@/lib/flags/country";
 import { flagEmojiForCode } from "@/lib/flags/team-flag";
 import type { TeamLite } from "@/lib/queries/dashboard";
 
@@ -27,15 +27,6 @@ function teamFlagEmoji(t: TeamLite): string {
   if (t.flag && !/^https?:\/\//.test(t.flag)) return t.flag;
   return flagEmojiForCode(t.code);
 }
-
-const REFEREE_ROLE: Record<string, string> = {
-  REFEREE: "Árbitro",
-  ASSISTANT_REFEREE_N1: "Asistente 1",
-  ASSISTANT_REFEREE_N2: "Asistente 2",
-  FOURTH_OFFICIAL: "Cuarto árbitro",
-  VIDEO_ASSISTANT_REFEREE_N1: "VAR",
-  VIDEO_ASSISTANT_REFEREE_N2: "AVAR",
-};
 
 function Team({ t }: { t: TeamLite }) {
   return (
@@ -145,6 +136,18 @@ export default async function CargarMatchPage({
           )}
         </div>
 
+        {/* Ficha del partido (fecha, instancia, sede, árbitros) detrás de un desplegable */}
+        {playable && (
+          <MatchDetails
+            kickoffAt={m.kickoffAt}
+            stageName={m.stageName}
+            groupName={m.groupName}
+            matchday={m.matchday}
+            venue={m.venue}
+            referees={m.referees}
+          />
+        )}
+
         {/* Previa generada por IA */}
         {!finished && m.aiPreview && (
           <div className="mx-4 flex items-start gap-2 bg-scoreboard-black border-pixel px-3 py-2">
@@ -214,34 +217,6 @@ export default async function CargarMatchPage({
               </p>
             </div>
           ))}
-
-        {/* Árbitros (se completan cuando la FIFA los asigna) */}
-        {m.referees.length > 0 && (
-          <section className="mx-4 bg-scoreboard-black border-pixel-thick shadow-pixel-sm">
-            <div className="font-display text-[9px] tracking-[1px] text-line-white px-3 py-2 border-b-[3px] border-border">
-              👨‍⚖️ ÁRBITROS
-            </div>
-            <ul>
-              {m.referees.map((r, i) => (
-                <li
-                  key={i}
-                  className="flex items-center gap-2 px-3 py-2 border-b-[2px] border-scoreboard-slate last:border-b-0"
-                >
-                  <span className="font-display text-[7px] tracking-[0.5px] text-grey-400 w-20 shrink-0">
-                    {(r.role && REFEREE_ROLE[r.role]) ?? "Árbitro"}
-                  </span>
-                  <span className="font-body text-sm text-line-white flex-1 truncate">{r.name}</span>
-                  {r.nationality && (
-                    <span className="font-body text-xs text-grey-300 flex items-center gap-1">
-                      <span className="text-base">{countryFlag(r.nationality) ?? "🏳️"}</span>
-                      {r.nationality}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
 
         {/* Comentarios */}
         {playable && <MatchComments matchId={m.id} comments={comments} />}
