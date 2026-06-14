@@ -92,6 +92,30 @@ export function normalizeReferees(m: FdMatch): RefereeInfo[] {
     .map((r) => ({ name: r.name as string, role: r.type, nationality: r.nationality }));
 }
 
+export type MatchResultState = {
+  status: MatchStatus;
+  homeScore: number | null;
+  awayScore: number | null;
+};
+
+const hasResult = (s: MatchResultState | undefined): s is MatchResultState =>
+  s?.status === "finished" && s.homeScore !== null && s.awayScore !== null;
+
+/**
+ * Resultado final a persistir, protegiendo un partido ya cerrado con marcador
+ * (p. ej. cargado a mano por el admin) de que el sync lo pise con datos sin
+ * marcador. football-data en plan gratis a veces reporta el partido sin goles;
+ * solo dejamos que la API sobrescriba un resultado existente si trae OTRO
+ * resultado completo (finished + goles no nulos).
+ */
+export function resolveMatchResult(
+  existing: MatchResultState | undefined,
+  incoming: MatchResultState,
+): MatchResultState {
+  if (!hasResult(existing)) return incoming;
+  return hasResult(incoming) ? incoming : existing;
+}
+
 export function normalizeMatch(m: FdMatch): NormalizedMatch {
   return {
     externalId: m.id,

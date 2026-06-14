@@ -5,6 +5,8 @@ import {
   mapGroupLetter,
   normalizeTeam,
   normalizeMatch,
+  resolveMatchResult,
+  type MatchResultState,
 } from "@/lib/integrations/football-data/map";
 import type { FdMatch, FdTeam } from "@/lib/integrations/football-data/types";
 
@@ -107,5 +109,33 @@ describe("normalizeMatch", () => {
     expect(out.awayExternalId).toBeNull();
     expect(out.status).toBe("scheduled");
     expect(out.homeScore).toBeNull();
+  });
+});
+
+describe("resolveMatchResult", () => {
+  const finished2_0: MatchResultState = { status: "finished", homeScore: 2, awayScore: 0 };
+  const noScore: MatchResultState = { status: "scheduled", homeScore: null, awayScore: null };
+
+  it("usa el dato de la API si no hay resultado guardado", () => {
+    expect(resolveMatchResult(undefined, finished2_0)).toEqual(finished2_0);
+    expect(resolveMatchResult(noScore, finished2_0)).toEqual(finished2_0);
+  });
+
+  it("protege un resultado ya cargado cuando la API no trae marcador", () => {
+    // Caso real: partido cargado a mano y la API lo reporta TIMED/sin goles.
+    expect(resolveMatchResult(finished2_0, noScore)).toEqual(finished2_0);
+    expect(
+      resolveMatchResult(finished2_0, { status: "finished", homeScore: null, awayScore: null }),
+    ).toEqual(finished2_0);
+  });
+
+  it("deja que la API corrija si trae OTRO resultado completo", () => {
+    const official: MatchResultState = { status: "finished", homeScore: 3, awayScore: 1 };
+    expect(resolveMatchResult(finished2_0, official)).toEqual(official);
+  });
+
+  it("no considera 'resultado' a un finished sin goles", () => {
+    const finishedNull: MatchResultState = { status: "finished", homeScore: null, awayScore: null };
+    expect(resolveMatchResult(finishedNull, finished2_0)).toEqual(finished2_0);
   });
 });
