@@ -1,7 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import type { FootballDataClient } from "@/lib/integrations/football-data/client-core";
-import { normalizeTeam, normalizeMatch } from "@/lib/integrations/football-data/map";
+import {
+  normalizeTeam,
+  normalizeMatch,
+  resolveMatchResult,
+  type MatchResultState,
+} from "@/lib/integrations/football-data/map";
 
 export type SyncResult = { teams: number; matches: number; skipped: number };
 
@@ -33,17 +38,29 @@ export async function syncFixtures(
     );
   }
 
-  // Mapas para resolver ids de nuestra BD.
-  const [{ data: teamRows }, { data: stageRows }, { data: groupRows }] = await Promise.all([
-    supabase.from("teams").select("id, external_id"),
-    supabase.from("stages").select("id, sort_order"),
-    supabase.from("groups").select("id, name"),
-  ]);
+  // Mapas para resolver ids de nuestra BD + estado actual de los partidos.
+  const [{ data: teamRows }, { data: stageRows }, { data: groupRows }, { data: matchRows }] =
+    await Promise.all([
+      supabase.from("teams").select("id, external_id"),
+      supabase.from("stages").select("id, sort_order"),
+      supabase.from("groups").select("id, name"),
+      supabase.from("matches").select("external_id, status, home_score, away_score"),
+    ]);
 
   const teamByExternal = new Map<number, string>();
   for (const r of teamRows ?? []) if (r.external_id != null) teamByExternal.set(r.external_id, r.id);
   const stageBySort = new Map((stageRows ?? []).map((s) => [s.sort_order, s.id]));
   const groupByName = new Map((groupRows ?? []).map((g) => [g.name, g.id]));
+
+  // Resultado ya guardado (para no pisar un marcador cargado a mano).
+  const resultByExternal = new Map<number, MatchResultState>();
+  for (const r of matchRows ?? [])
+    if (r.external_id != null)
+      resultByExternal.set(r.external_id, {
+        status: r.status,
+        homeScore: r.home_score,
+        awayScore: r.away_score,
+      });
 
   // ---- 2. Partidos ----
   const { matches } = await client.fetchMatches();
@@ -57,6 +74,12 @@ export async function syncFixtures(
       skipped += 1; // etapa desconocida: no la cargamos
       continue;
     }
+    // Guard: no degradar un partido ya finalizado con marcador (p. ej. cargado a mano).
+    const result = resolveMatchResult(resultByExternal.get(n.externalId), {
+      status: n.status,
+      homeScore: n.homeScore,
+      awayScore: n.awayScore,
+    });
     rows.push({
       external_id: n.externalId,
       stage_id: stageId,
@@ -65,9 +88,9 @@ export async function syncFixtures(
       home_team_id: n.homeExternalId != null ? teamByExternal.get(n.homeExternalId) ?? null : null,
       away_team_id: n.awayExternalId != null ? teamByExternal.get(n.awayExternalId) ?? null : null,
       kickoff_at: n.kickoffAt,
-      status: n.status,
-      home_score: n.homeScore,
-      away_score: n.awayScore,
+      status: result.status,
+      home_score: result.homeScore,
+      away_score: result.awayScore,
       referees: n.referees,
     });
   }
