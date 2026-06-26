@@ -6,6 +6,7 @@ import {
   normalizeTeam,
   normalizeMatch,
   resolveMatchResult,
+  resolveTeamId,
   type MatchResultState,
 } from "@/lib/integrations/football-data/map";
 import type { FdMatch, FdTeam } from "@/lib/integrations/football-data/types";
@@ -137,5 +138,24 @@ describe("resolveMatchResult", () => {
   it("no considera 'resultado' a un finished sin goles", () => {
     const finishedNull: MatchResultState = { status: "finished", homeScore: null, awayScore: null };
     expect(resolveMatchResult(finishedNull, finished2_0)).toEqual(finished2_0);
+  });
+});
+
+describe("resolveTeamId", () => {
+  it("usa el equipo de la API cuando hay uno", () => {
+    expect(resolveTeamId(null, "team-a")).toBe("team-a");
+    expect(resolveTeamId("team-a", "team-b")).toBe("team-b"); // permite corrección
+  });
+
+  it("conserva el equipo ya resuelto cuando la API lo revierte a 'por definir'", () => {
+    // Caso real: la API arma el cruce de eliminatoria, lo asigna y después lo
+    // vuelve a dejar null mientras recalcula el cuadro. No lo degradamos.
+    expect(resolveTeamId("team-a", null)).toBe("team-a");
+    expect(resolveTeamId("team-a", undefined)).toBe("team-a");
+  });
+
+  it("null si nunca hubo equipo", () => {
+    expect(resolveTeamId(null, null)).toBeNull();
+    expect(resolveTeamId(undefined, undefined)).toBeNull();
   });
 });
