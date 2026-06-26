@@ -116,6 +116,20 @@ export function resolveMatchResult(
   return hasResult(incoming) ? incoming : existing;
 }
 
+/**
+ * Equipo a persistir para un lado del partido, protegiendo un cruce ya resuelto
+ * de que el sync lo degrade a "por definir". football-data arma el cuadro a
+ * medida que terminan los grupos y a veces revierte un cruce a null mientras
+ * recalcula; si ya teníamos el equipo, lo conservamos. Si la API trae un equipo
+ * (no nulo) manda la API (permite corregir el cruce).
+ */
+export function resolveTeamId(
+  existing: string | null | undefined,
+  incoming: string | null | undefined,
+): string | null {
+  return incoming ?? existing ?? null;
+}
+
 export function normalizeMatch(m: FdMatch): NormalizedMatch {
   return {
     externalId: m.id,

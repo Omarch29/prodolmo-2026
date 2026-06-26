@@ -5,6 +5,7 @@ import {
   normalizeTeam,
   normalizeMatch,
   resolveMatchResult,
+  resolveTeamId,
   type MatchResultState,
 } from "@/lib/integrations/football-data/map";
 
@@ -44,7 +45,9 @@ export async function syncFixtures(
       supabase.from("teams").select("id, external_id"),
       supabase.from("stages").select("id, sort_order"),
       supabase.from("groups").select("id, name"),
-      supabase.from("matches").select("external_id, status, home_score, away_score"),
+      supabase
+        .from("matches")
+        .select("external_id, status, home_score, away_score, home_team_id, away_team_id"),
     ]);
 
   const teamByExternal = new Map<number, string>();
@@ -54,13 +57,18 @@ export async function syncFixtures(
 
   // Resultado ya guardado (para no pisar un marcador cargado a mano).
   const resultByExternal = new Map<number, MatchResultState>();
+  // Equipos ya resueltos (para no degradar un cruce a "por definir" si la API
+  // lo revierte a null mientras recalcula el cuadro).
+  const teamsByExternal = new Map<number, { home: string | null; away: string | null }>();
   for (const r of matchRows ?? [])
-    if (r.external_id != null)
+    if (r.external_id != null) {
       resultByExternal.set(r.external_id, {
         status: r.status,
         homeScore: r.home_score,
         awayScore: r.away_score,
       });
+      teamsByExternal.set(r.external_id, { home: r.home_team_id, away: r.away_team_id });
+    }
 
   // ---- 2. Partidos ----
   const { matches } = await client.fetchMatches();
@@ -80,13 +88,19 @@ export async function syncFixtures(
       homeScore: n.homeScore,
       awayScore: n.awayScore,
     });
+    // Guard: no degradar un cruce ya resuelto si la API lo revierte a "por definir".
+    const existingTeams = teamsByExternal.get(n.externalId);
+    const incomingHome =
+      n.homeExternalId != null ? teamByExternal.get(n.homeExternalId) ?? null : null;
+    const incomingAway =
+      n.awayExternalId != null ? teamByExternal.get(n.awayExternalId) ?? null : null;
     rows.push({
       external_id: n.externalId,
       stage_id: stageId,
       matchday: n.matchday,
       group_id: n.groupLetter ? groupByName.get(n.groupLetter) ?? null : null,
-      home_team_id: n.homeExternalId != null ? teamByExternal.get(n.homeExternalId) ?? null : null,
-      away_team_id: n.awayExternalId != null ? teamByExternal.get(n.awayExternalId) ?? null : null,
+      home_team_id: resolveTeamId(existingTeams?.home, incomingHome),
+      away_team_id: resolveTeamId(existingTeams?.away, incomingAway),
       kickoff_at: n.kickoffAt,
       status: result.status,
       home_score: result.homeScore,
