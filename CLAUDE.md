@@ -1,8 +1,26 @@
-# CLAUDE.md — Convenciones del proyecto
+# CLAUDE.md
 
-Guía para trabajar en **PRODE Mundial 2026**. Leé también `README.md` (setup) y
-`docs/Prode-Mundial-2026-Spec.md` (spec funcional/técnica: modelo de datos,
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+Convenciones para trabajar en **PRODE Mundial 2026** (PRODOLMO). Leé también
+`README.md` (setup), `docs/ARCHITECTURE.md` (cómo está hecho, con diagrama y flujos)
+y `docs/Prode-Mundial-2026-Spec.md` (spec funcional/técnica: modelo de datos,
 sistema de puntos, pantallas, reglas).
+
+## Comandos
+- **Dev / build**: `npm run dev` · `npm run build` · `npm run start`.
+- **Calidad** (correr antes de dar algo por hecho): `npm run typecheck`
+  (`tsc --noEmit`) · `npm run lint` (`eslint`) · `npm run test` (Vitest, una vez).
+- **Tests unitarios**: `npm run test:watch` (watch). Un solo archivo:
+  `npx vitest run test/wc2026.test.ts`. Por nombre: `npx vitest run -t "campeón"`.
+- **E2E (Cypress)**: `npm run e2e` (headless) · `npm run e2e:open` (UI) ·
+  `npm run e2e:ci` (levanta `dev` y corre; necesita Supabase arriba).
+- **Supabase local** (Docker): `npm run db:start` / `db:stop` / `db:reset`
+  (reset reaplica migraciones + seed). Tras cambiar el esquema: `npm run db:types`
+  regenera `lib/database.types.ts`.
+- **Seeds / jobs**: `npm run seed:users` (lista cerrada, service-role) ·
+  `npm run seed:demo` (datos de prueba) · `npm run sync:fixtures`
+  (football-data.org) · `npm run job:daily` (mensajes del día).
 
 ## Stack y decisiones fijas
 - **Next.js (App Router) + TypeScript estricto**. Sin `any`.
@@ -72,9 +90,11 @@ sistema de puntos, pantallas, reglas).
 ## Tests
 - **Vitest** para lógica pura (sin DB ni red), en `test/*.test.ts`.
 - Patrón: extraer la lógica con miga a módulos puros y testearla ahí
-  (ej. `lib/sim/bracket.ts`, `lib/standings/rank.ts`, `lib/config.ts`, schemas Zod).
+  (ej. `lib/sim/wc2026.ts`, `lib/standings/rank.ts`, `lib/config.ts`, schemas Zod).
   Las queries/acciones con Supabase se verifican aparte (scripts / a mano).
 - Importar `describe/it/expect` desde `"vitest"` (sin globals).
+- **E2E (Cypress)** en `cypress/e2e/` cubren login y navegación; necesitan
+  Supabase corriendo (`npm run e2e:ci`).
 
 ## Verificación antes de dar algo por hecho
 - `npm run typecheck`, `npm run test` y `npm run build` en verde.
