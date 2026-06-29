@@ -13,6 +13,7 @@ import { PredictionForm } from "@/components/cargar/PredictionForm";
 import { FriendPicks } from "@/components/cargar/FriendPicks";
 import { MatchComments } from "@/components/cargar/MatchComments";
 import { MatchDetails } from "@/components/cargar/MatchDetails";
+import { AdvancesBadge, resolveAdvancingTeam } from "@/components/cargar/AdvancesBadge";
 import { BackButton } from "@/components/cargar/BackButton";
 import { SoonAlert } from "@/components/cargar/SoonAlert";
 import { Countdown } from "@/components/ui/Countdown";
@@ -65,6 +66,11 @@ export default async function CargarMatchPage({
   // Alerta roja: arranca en <2h y no lo cargaste.
   const showSoonAlert = !finished && !m.myPred && isMatchSoon(kickoff);
   const playable = m.homeTeamId !== null && m.awayTeamId !== null;
+  // Si mi pronóstico fue empate en eliminatoria, a quién elegí que pase de ronda.
+  const myAdvancing =
+    m.myPred && m.myPred.home === m.myPred.away
+      ? resolveAdvancingTeam(m.myPred.winnerTeamId, m.homeTeamId, m.awayTeamId, m.home, m.away)
+      : null;
   const [prevMatchId, nextMatchId] = await Promise.all([
     getPrevMatchId(supabase, m.kickoffAt, m.id),
     getNextMatchId(supabase, m.kickoffAt, m.id),
@@ -181,9 +187,12 @@ export default async function CargarMatchPage({
             <div className="bg-scoreboard-black border-pixel-thick shadow-pixel-sm p-4 text-center">
               <div className="font-display text-[8px] tracking-[1px] text-grey-300 mb-2">TU PRONÓSTICO</div>
               {m.myPred ? (
-                <span className="font-mono text-card-yellow text-4xl">
-                  {m.myPred.home} - {m.myPred.away}
-                </span>
+                <div className="flex flex-col items-center gap-2">
+                  <span className="font-mono text-card-yellow text-4xl">
+                    {m.myPred.home} - {m.myPred.away}
+                  </span>
+                  {myAdvancing && <AdvancesBadge team={myAdvancing} />}
+                </div>
               ) : (
                 <span className="font-body text-sm text-grey-400">No cargaste este partido.</span>
               )}
@@ -206,6 +215,8 @@ export default async function CargarMatchPage({
               reveal={finished}
               home={m.home}
               away={m.away}
+              homeTeamId={m.homeTeamId}
+              awayTeamId={m.awayTeamId}
             />
           ) : (
             <div className="mx-4 flex items-start gap-2 bg-scoreboard-slate border-pixel px-3 py-2">

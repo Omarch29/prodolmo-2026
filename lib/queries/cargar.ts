@@ -187,6 +187,7 @@ export type FriendPick = {
   avatarUrl: string | null;
   home: number;
   away: number;
+  winnerTeamId: string | null; // quién pasa, si el pronóstico fue empate (eliminatorias)
   points: number | null;
 };
 
@@ -203,7 +204,7 @@ export async function getFriendPicks(
   const { data } = await supabase
     .from("predictions")
     .select(
-      "user_id, pred_home_score, pred_away_score, points_earned, profile:profiles(display_name, avatar_url)",
+      "user_id, pred_home_score, pred_away_score, pred_winner_team_id, points_earned, profile:profiles(display_name, avatar_url)",
     )
     .eq("match_id", matchId)
     .neq("user_id", userId);
@@ -214,6 +215,7 @@ export async function getFriendPicks(
     avatarUrl: p.profile?.avatar_url ?? null,
     home: p.pred_home_score,
     away: p.pred_away_score,
+    winnerTeamId: p.pred_winner_team_id,
     points: p.points_earned,
   }));
 }
