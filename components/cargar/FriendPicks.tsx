@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AvatarHoverCard } from "@/components/ui/AvatarHoverCard";
 import { Flag } from "@/components/ui/Flag";
+import { AdvancesBadge, resolveAdvancingTeam } from "@/components/cargar/AdvancesBadge";
 import { cn } from "@/lib/utils";
 import type { FriendPick } from "@/lib/queries/cargar";
 import type { TeamLite } from "@/lib/queries/dashboard";
@@ -11,12 +12,16 @@ export function FriendPicks({
   reveal,
   home,
   away,
+  homeTeamId,
+  awayTeamId,
 }: {
   picks: FriendPick[];
   title: string;
   reveal: boolean;
   home: TeamLite;
   away: TeamLite;
+  homeTeamId: string | null;
+  awayTeamId: string | null;
 }) {
   if (picks.length === 0) return null;
 
@@ -28,6 +33,11 @@ export function FriendPicks({
       <ul>
         {picks.map((p) => {
           const hit = reveal && (p.points ?? 0) > 0;
+          // En empate de eliminatoria, a quién eligió que pase de ronda.
+          const advancing =
+            p.home === p.away
+              ? resolveAdvancingTeam(p.winnerTeamId, homeTeamId, awayTeamId, home, away)
+              : null;
           return (
             <li
               key={p.userId}
@@ -50,6 +60,7 @@ export function FriendPicks({
                 {p.home}-{p.away}
                 <Flag flag={away.flag} size={16} />
               </span>
+              {advancing && <AdvancesBadge team={advancing} className="shrink-0" />}
               {reveal && (
                 <span
                   className={cn(
