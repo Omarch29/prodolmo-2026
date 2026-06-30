@@ -108,9 +108,16 @@ export default async function CargarMatchPage({
           <div className="flex items-center justify-around py-5 px-3">
             <Team t={m.home} />
             {finished ? (
-              <span className="font-mono text-card-yellow text-4xl">
-                {m.homeScore}-{m.awayScore}
-              </span>
+              <div className="flex flex-col items-center gap-1">
+                <span className="font-mono text-card-yellow text-4xl">
+                  {m.homeScore}-{m.awayScore}
+                </span>
+                {m.homePenalties != null && m.awayPenalties != null && (
+                  <span className="font-display text-[8px] tracking-[1px] text-grey-300">
+                    PENALES {m.homePenalties}-{m.awayPenalties}
+                  </span>
+                )}
+              </div>
             ) : (
               <span className="font-display text-line-white text-sm">VS</span>
             )}

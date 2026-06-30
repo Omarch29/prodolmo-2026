@@ -6,6 +6,7 @@ import {
   normalizeMatch,
   resolveMatchResult,
   resolveTeamId,
+  usesIncomingResult,
   type MatchResultState,
 } from "@/lib/integrations/football-data/map";
 
@@ -47,7 +48,9 @@ export async function syncFixtures(
       supabase.from("groups").select("id, name"),
       supabase
         .from("matches")
-        .select("external_id, status, home_score, away_score, home_team_id, away_team_id"),
+        .select(
+          "external_id, status, home_score, away_score, home_team_id, away_team_id, home_penalties, away_penalties, decided_winner_team_id",
+        ),
     ]);
 
   const teamByExternal = new Map<number, string>();
@@ -60,6 +63,11 @@ export async function syncFixtures(
   // Equipos ya resueltos (para no degradar un cruce a "por definir" si la API
   // lo revierte a null mientras recalcula el cuadro).
   const teamsByExternal = new Map<number, { home: string | null; away: string | null }>();
+  // Penales / equipo que avanza ya guardados (se conservan junto al resultado).
+  const penaltyByExternal = new Map<
+    number,
+    { homePenalties: number | null; awayPenalties: number | null; decidedWinnerTeamId: string | null }
+  >();
   for (const r of matchRows ?? [])
     if (r.external_id != null) {
       resultByExternal.set(r.external_id, {
@@ -68,6 +76,11 @@ export async function syncFixtures(
         awayScore: r.away_score,
       });
       teamsByExternal.set(r.external_id, { home: r.home_team_id, away: r.away_team_id });
+      penaltyByExternal.set(r.external_id, {
+        homePenalties: r.home_penalties,
+        awayPenalties: r.away_penalties,
+        decidedWinnerTeamId: r.decided_winner_team_id,
+      });
     }
 
   // ---- 2. Partidos ----
@@ -83,28 +96,46 @@ export async function syncFixtures(
       continue;
     }
     // Guard: no degradar un partido ya finalizado con marcador (p. ej. cargado a mano).
-    const result = resolveMatchResult(resultByExternal.get(n.externalId), {
+    const existingResult = resultByExternal.get(n.externalId);
+    const incomingResult: MatchResultState = {
       status: n.status,
       homeScore: n.homeScore,
       awayScore: n.awayScore,
-    });
+    };
+    const result = resolveMatchResult(existingResult, incomingResult);
+    const useIncoming = usesIncomingResult(existingResult, incomingResult);
     // Guard: no degradar un cruce ya resuelto si la API lo revierte a "por definir".
     const existingTeams = teamsByExternal.get(n.externalId);
     const incomingHome =
       n.homeExternalId != null ? teamByExternal.get(n.homeExternalId) ?? null : null;
     const incomingAway =
       n.awayExternalId != null ? teamByExternal.get(n.awayExternalId) ?? null : null;
+    const homeTeamId = resolveTeamId(existingTeams?.home, incomingHome);
+    const awayTeamId = resolveTeamId(existingTeams?.away, incomingAway);
+    // Penales / equipo que avanza: siguen la misma decisión que el resultado
+    // (si conservamos el guardado, conservamos también penales y ganador).
+    const existingPenalty = penaltyByExternal.get(n.externalId);
+    const decidedWinnerTeamId = useIncoming
+      ? n.decidedWinner === "home"
+        ? homeTeamId
+        : n.decidedWinner === "away"
+          ? awayTeamId
+          : null
+      : existingPenalty?.decidedWinnerTeamId ?? null;
     rows.push({
       external_id: n.externalId,
       stage_id: stageId,
       matchday: n.matchday,
       group_id: n.groupLetter ? groupByName.get(n.groupLetter) ?? null : null,
-      home_team_id: resolveTeamId(existingTeams?.home, incomingHome),
-      away_team_id: resolveTeamId(existingTeams?.away, incomingAway),
+      home_team_id: homeTeamId,
+      away_team_id: awayTeamId,
       kickoff_at: n.kickoffAt,
       status: result.status,
       home_score: result.homeScore,
       away_score: result.awayScore,
+      home_penalties: useIncoming ? n.homePenalties : existingPenalty?.homePenalties ?? null,
+      away_penalties: useIncoming ? n.awayPenalties : existingPenalty?.awayPenalties ?? null,
+      decided_winner_team_id: decidedWinnerTeamId,
       referees: n.referees,
     });
   }

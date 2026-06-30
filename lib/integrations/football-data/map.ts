@@ -81,10 +81,59 @@ export type NormalizedMatch = {
   awayExternalId: number | null;
   kickoffAt: string;
   status: MatchStatus;
-  homeScore: number | null;
+  homeScore: number | null; // 90' + alargue (marcador real de fútbol)
   awayScore: number | null;
+  homePenalties: number | null; // definición por penales (solo para mostrar)
+  awayPenalties: number | null;
+  decidedWinner: "home" | "away" | null; // quién avanza si se definió por penales
   referees: RefereeInfo[];
 };
+
+export type ScoreInfo = {
+  homeScore: number | null;
+  awayScore: number | null;
+  homePenalties: number | null;
+  awayPenalties: number | null;
+  decidedWinner: "home" | "away" | null;
+};
+
+/**
+ * Separa el marcador real (90' + alargue) de la definición por penales.
+ * football-data mete los penales en `fullTime` (ej. Alemania-Paraguay terminó
+ * 1-1 y `fullTime` viene 5-6). Cuando hubo penales, el marcador de fútbol es
+ * `regularTime` (+ `extraTime`), y `fullTime` queda como el marcador de penales.
+ * El ganador se deduce de ese marcador (el campo `winner` no es confiable).
+ */
+export function resolveScore(score: FdMatch["score"]): ScoreInfo {
+  const reg = score.regularTime;
+  if (score.duration === "PENALTY_SHOOTOUT" && reg) {
+    const et = score.extraTime;
+    const homePen = score.fullTime?.home ?? null;
+    const awayPen = score.fullTime?.away ?? null;
+    const decidedWinner =
+      homePen != null && awayPen != null
+        ? homePen > awayPen
+          ? "home"
+          : awayPen > homePen
+            ? "away"
+            : null
+        : null;
+    return {
+      homeScore: (reg.home ?? 0) + (et?.home ?? 0),
+      awayScore: (reg.away ?? 0) + (et?.away ?? 0),
+      homePenalties: homePen,
+      awayPenalties: awayPen,
+      decidedWinner,
+    };
+  }
+  return {
+    homeScore: score.fullTime?.home ?? null,
+    awayScore: score.fullTime?.away ?? null,
+    homePenalties: null,
+    awayPenalties: null,
+    decidedWinner: null,
+  };
+}
 
 export function normalizeReferees(m: FdMatch): RefereeInfo[] {
   return (m.referees ?? [])
@@ -100,6 +149,18 @@ export type MatchResultState = {
 
 const hasResult = (s: MatchResultState | undefined): s is MatchResultState =>
   s?.status === "finished" && s.homeScore !== null && s.awayScore !== null;
+
+/**
+ * ¿El sync debe quedarse con el resultado entrante (vs. conservar el guardado)?
+ * Mismo criterio que `resolveMatchResult`, expuesto para decidir también sobre
+ * los campos derivados del resultado (penales, equipo que avanza).
+ */
+export function usesIncomingResult(
+  existing: MatchResultState | undefined,
+  incoming: MatchResultState,
+): boolean {
+  return !hasResult(existing) || hasResult(incoming);
+}
 
 /**
  * Resultado final a persistir, protegiendo un partido ya cerrado con marcador
@@ -131,6 +192,7 @@ export function resolveTeamId(
 }
 
 export function normalizeMatch(m: FdMatch): NormalizedMatch {
+  const score = resolveScore(m.score);
   return {
     externalId: m.id,
     stageSort: mapStageSortOrder(m.stage),
@@ -140,8 +202,11 @@ export function normalizeMatch(m: FdMatch): NormalizedMatch {
     awayExternalId: m.awayTeam?.id ?? null,
     kickoffAt: m.utcDate,
     status: mapStatus(m.status),
-    homeScore: m.score?.fullTime?.home ?? null,
-    awayScore: m.score?.fullTime?.away ?? null,
+    homeScore: score.homeScore,
+    awayScore: score.awayScore,
+    homePenalties: score.homePenalties,
+    awayPenalties: score.awayPenalties,
+    decidedWinner: score.decidedWinner,
     referees: normalizeReferees(m),
   };
 }

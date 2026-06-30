@@ -72,8 +72,15 @@ export function MatchListRow({ m, backTo }: { m: CargarMatch; backTo?: string })
 
         <div className="flex items-center justify-between gap-2">
           <TeamSide code={m.home.code} flag={m.home.flag} align="start" />
-          <span className="font-mono text-card-yellow text-2xl whitespace-nowrap bg-scoreboard-ink border-pixel px-2">
-            {m.homeScore}-{m.awayScore}
+          <span className="flex flex-col items-center">
+            <span className="font-mono text-card-yellow text-2xl whitespace-nowrap bg-scoreboard-ink border-pixel px-2">
+              {m.homeScore}-{m.awayScore}
+            </span>
+            {m.homePenalties != null && m.awayPenalties != null && (
+              <span className="font-display text-[7px] tracking-[0.5px] text-grey-300 mt-1">
+                PEN {m.homePenalties}-{m.awayPenalties}
+              </span>
+            )}
           </span>
           <TeamSide code={m.away.code} flag={m.away.flag} align="end" />
         </div>

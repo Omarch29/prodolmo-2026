@@ -16,11 +16,14 @@ export type CargarMatch = {
   playable: boolean; // ambos equipos definidos (no es un cruce "por definir")
   homeScore: number | null;
   awayScore: number | null;
+  homePenalties: number | null; // definición por penales (eliminatorias)
+  awayPenalties: number | null;
   myPred: { home: number; away: number } | null;
   myPoints: number | null;
 };
 
 const MATCH_SELECT = `id, kickoff_at, status, group_id, matchday, home_score, away_score,
+  home_penalties, away_penalties,
   stage:stages(name),
   home_team:teams!matches_home_team_id_fkey(name, code, flag_url),
   away_team:teams!matches_away_team_id_fkey(name, code, flag_url)`;
@@ -59,6 +62,8 @@ export async function getCargarMatches(
       playable: !!m.home_team && !!m.away_team,
       homeScore: m.home_score,
       awayScore: m.away_score,
+      homePenalties: m.home_penalties,
+      awayPenalties: m.away_penalties,
       myPred: pred ? { home: pred.home, away: pred.away } : null,
       myPoints: pred?.points ?? null,
     };
@@ -81,6 +86,9 @@ export type MatchDetail = {
   away: TeamLite;
   homeScore: number | null;
   awayScore: number | null;
+  homePenalties: number | null; // definición por penales (eliminatorias)
+  awayPenalties: number | null;
+  decidedWinnerTeamId: string | null; // equipo que avanzó (penales)
   aiPreview: string | null;
   referees: MatchReferee[];
   myPred: { home: number; away: number; winnerTeamId: string | null } | null;
@@ -97,7 +105,7 @@ export async function getMatchForPrediction(
   const { data: m } = await supabase
     .from("matches")
     .select(
-      `id, kickoff_at, status, group_id, matchday, venue, home_team_id, away_team_id, home_score, away_score, ai_preview, referees,
+      `id, kickoff_at, status, group_id, matchday, venue, home_team_id, away_team_id, home_score, away_score, home_penalties, away_penalties, decided_winner_team_id, ai_preview, referees,
        stage:stages(name, sort_order),
        group:groups(name),
        home_team:teams!matches_home_team_id_fkey(name, code, flag_url),
@@ -130,6 +138,9 @@ export async function getMatchForPrediction(
     away: toTeam(m.away_team),
     homeScore: m.home_score,
     awayScore: m.away_score,
+    homePenalties: m.home_penalties,
+    awayPenalties: m.away_penalties,
+    decidedWinnerTeamId: m.decided_winner_team_id,
     aiPreview: m.ai_preview,
     referees: (m.referees ?? []) as MatchReferee[],
     myPred: pred
