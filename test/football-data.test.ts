@@ -7,6 +7,7 @@ import {
   normalizeMatch,
   resolveMatchResult,
   resolveTeamId,
+  resolveScore,
   type MatchResultState,
 } from "@/lib/integrations/football-data/map";
 import type { FdMatch, FdTeam } from "@/lib/integrations/football-data/types";
@@ -90,8 +91,37 @@ describe("normalizeMatch", () => {
       status: "finished",
       homeScore: 2,
       awayScore: 1,
+      homePenalties: null,
+      awayPenalties: null,
+      decidedWinner: null,
       referees: [],
     });
+  });
+
+  it("eliminatoria por penales: marcador real es 90'+alargue, no fullTime", () => {
+    // Caso real Alemania-Paraguay: terminó 1-1, fullTime trae el agregado con
+    // penales (5-6). El marcador de fútbol debe ser 1-1 y Paraguay (away) avanza.
+    const m: FdMatch = {
+      ...base,
+      id: 200,
+      stage: "LAST_32",
+      group: null,
+      homeTeam: { id: 759, name: "Germany", tla: "GER" },
+      awayTeam: { id: 770, name: "Paraguay", tla: "PAR" },
+      score: {
+        duration: "PENALTY_SHOOTOUT",
+        fullTime: { home: 5, away: 6 },
+        regularTime: { home: 1, away: 1 },
+        extraTime: { home: 0, away: 0 },
+        penalties: { home: 5, away: 5 },
+      },
+    };
+    const out = normalizeMatch(m);
+    expect(out.homeScore).toBe(1);
+    expect(out.awayScore).toBe(1);
+    expect(out.homePenalties).toBe(5);
+    expect(out.awayPenalties).toBe(6);
+    expect(out.decidedWinner).toBe("away");
   });
 
   it("maneja eliminatoria con equipo por definir y sin marcador", () => {
@@ -157,5 +187,63 @@ describe("resolveTeamId", () => {
   it("null si nunca hubo equipo", () => {
     expect(resolveTeamId(null, null)).toBeNull();
     expect(resolveTeamId(undefined, undefined)).toBeNull();
+  });
+});
+
+describe("resolveScore", () => {
+  it("partido normal: marcador = fullTime, sin penales", () => {
+    expect(resolveScore({ duration: "REGULAR", fullTime: { home: 2, away: 1 } })).toEqual({
+      homeScore: 2,
+      awayScore: 1,
+      homePenalties: null,
+      awayPenalties: null,
+      decidedWinner: null,
+    });
+  });
+
+  it("definido en el alargue (sin penales): usa fullTime", () => {
+    expect(
+      resolveScore({
+        duration: "EXTRA_TIME",
+        fullTime: { home: 2, away: 1 },
+        regularTime: { home: 1, away: 1 },
+        extraTime: { home: 1, away: 0 },
+      }),
+    ).toEqual({
+      homeScore: 2,
+      awayScore: 1,
+      homePenalties: null,
+      awayPenalties: null,
+      decidedWinner: null,
+    });
+  });
+
+  it("penales: marcador real = regularTime+alargue; penales y ganador aparte", () => {
+    expect(
+      resolveScore({
+        duration: "PENALTY_SHOOTOUT",
+        fullTime: { home: 5, away: 6 },
+        regularTime: { home: 1, away: 1 },
+        extraTime: { home: 0, away: 0 },
+      }),
+    ).toEqual({
+      homeScore: 1,
+      awayScore: 1,
+      homePenalties: 5,
+      awayPenalties: 6,
+      decidedWinner: "away",
+    });
+  });
+
+  it("penales con goles en el alargue: suma 90'+alargue", () => {
+    const r = resolveScore({
+      duration: "PENALTY_SHOOTOUT",
+      fullTime: { home: 8, away: 7 },
+      regularTime: { home: 1, away: 1 },
+      extraTime: { home: 1, away: 1 },
+    });
+    expect(r.homeScore).toBe(2);
+    expect(r.awayScore).toBe(2);
+    expect(r.decidedWinner).toBe("home");
   });
 });

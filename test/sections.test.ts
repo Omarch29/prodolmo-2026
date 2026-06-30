@@ -15,6 +15,8 @@ function m(partial: Partial<CargarMatch>): CargarMatch {
     playable: true,
     homeScore: null,
     awayScore: null,
+    homePenalties: null,
+    awayPenalties: null,
     myPred: null,
     myPoints: null,
     ...partial,

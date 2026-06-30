@@ -15,6 +15,8 @@ export type FdMatchTeam = {
   tla: string | null;
 };
 
+type FdScoreLine = { home: number | null; away: number | null };
+
 export type FdMatch = {
   id: number;
   utcDate: string;
@@ -24,7 +26,16 @@ export type FdMatch = {
   group: string | null; // "GROUP A" | null
   homeTeam: FdMatchTeam;
   awayTeam: FdMatchTeam;
-  score: { fullTime: { home: number | null; away: number | null } };
+  score: {
+    // REGULAR | EXTRA_TIME | PENALTY_SHOOTOUT
+    duration?: string;
+    // Ojo: en penales, fullTime trae el agregado CON penales (ej. 5-6). El
+    // marcador real de fútbol es regularTime (+ extraTime).
+    fullTime: FdScoreLine;
+    regularTime?: FdScoreLine;
+    extraTime?: FdScoreLine;
+    penalties?: FdScoreLine;
+  };
   referees?: { name: string | null; type: string | null; nationality: string | null }[];
 };
 
