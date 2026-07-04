@@ -573,6 +573,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      match_predictors: {
+        Args: { p_match_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          user_id: string
+        }[]
+      }
       prediction_lock_interval: { Args: never; Returns: string }
     }
     Enums: {
