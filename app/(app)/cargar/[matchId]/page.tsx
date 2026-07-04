@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getMatchForPrediction,
   getFriendPicks,
+  getMatchPredictors,
   getNextMatchId,
   getPrevMatchId,
 } from "@/lib/queries/cargar";
@@ -16,6 +17,7 @@ import { MatchDetails } from "@/components/cargar/MatchDetails";
 import { AdvancesBadge, resolveAdvancingTeam } from "@/components/cargar/AdvancesBadge";
 import { BackButton } from "@/components/cargar/BackButton";
 import { SoonAlert } from "@/components/cargar/SoonAlert";
+import { AvatarHoverCard } from "@/components/ui/AvatarHoverCard";
 import { Countdown } from "@/components/ui/Countdown";
 import { Flag } from "@/components/ui/Flag";
 import { buttonClassName } from "@/components/ui/Button";
@@ -77,6 +79,8 @@ export default async function CargarMatchPage({
   ]);
   const navHref = (id: string) => `/cargar/${id}?from=${encodeURIComponent(back)}`;
   const friendPicks = playable && othersVisible ? await getFriendPicks(supabase, user.id, matchId) : [];
+  // KO abierto: solo se muestra QUIÉN cargó (la RLS todavía oculta los pronósticos).
+  const predictors = playable && !othersVisible ? await getMatchPredictors(supabase, matchId) : [];
   const comments = playable ? await getComments(supabase, matchId) : [];
 
   return (
@@ -226,13 +230,33 @@ export default async function CargarMatchPage({
               awayTeamId={m.awayTeamId}
             />
           ) : (
-            <div className="mx-4 flex items-start gap-2 bg-scoreboard-slate border-pixel px-3 py-2">
-              <span className="text-lg">🔒</span>
-              <p className="font-body text-xs text-grey-300">
-                Desde <span className="text-line-white">Octavos</span>, los pronósticos del resto
-                recién se ven cuando el partido se <span className="text-line-white">bloquea</span> (1 h
-                antes de empezar). Hasta entonces, el de cada uno es secreto.
-              </p>
+            <div className="mx-4 flex flex-col gap-2 bg-scoreboard-slate border-pixel px-3 py-2">
+              <div className="flex items-start gap-2">
+                <span className="text-lg">🔒</span>
+                <p className="font-body text-xs text-grey-300">
+                  Desde <span className="text-line-white">Octavos</span>, los pronósticos del resto
+                  recién se ven cuando el partido se <span className="text-line-white">bloquea</span> (1 h
+                  antes de empezar). Hasta entonces, el de cada uno es secreto.
+                </p>
+              </div>
+              {predictors.length > 0 && (
+                <div className="border-t-[2px] border-border pt-2">
+                  <div className="font-display text-[8px] tracking-[1px] text-grey-300 mb-2">
+                    YA CARGARON ({predictors.length})
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {predictors.map((p) => (
+                      <AvatarHoverCard
+                        key={p.userId}
+                        userId={p.userId}
+                        name={p.displayName}
+                        avatarUrl={p.avatarUrl}
+                        size={28}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
 

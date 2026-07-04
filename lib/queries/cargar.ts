@@ -230,3 +230,26 @@ export async function getFriendPicks(
     points: p.points_earned,
   }));
 }
+
+export type MatchPredictor = {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+};
+
+/**
+ * Quiénes ya cargaron pronóstico en un partido, sin revelar qué cargaron.
+ * RPC security definer: funciona aunque la RLS todavía oculte los pronósticos
+ * ajenos (KO abierto), que es el único estado en el que la página lo usa.
+ */
+export async function getMatchPredictors(
+  supabase: SupabaseClient<Database>,
+  matchId: string,
+): Promise<MatchPredictor[]> {
+  const { data } = await supabase.rpc("match_predictors", { p_match_id: matchId });
+  return (data ?? []).map((p) => ({
+    userId: p.user_id,
+    displayName: p.display_name,
+    avatarUrl: p.avatar_url,
+  }));
+}
