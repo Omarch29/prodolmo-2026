@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
+import { resolveFinalMatch, championFromFinal, type FinalMatch } from "@/lib/champion/final";
 
 /** Puntos por acertar el campeón del Mundial. */
 export const CHAMPION_BONUS = 20;
@@ -26,22 +27,29 @@ export async function getTournamentStart(supabase: SupabaseClient<Database>): Pr
   return data?.kickoff_at ?? null;
 }
 
-/** Campeón real = ganador de la final (último partido finalizado de la última etapa). */
+/**
+ * Campeón real = ganador de LA final (kickoff más tardío de la última etapa),
+ * solo si ya terminó. La etapa 6 incluye el 3er puesto: mirar "el último
+ * terminado" coronaba mal durante el día entre ambos partidos.
+ */
 export async function getActualChampion(supabase: SupabaseClient<Database>): Promise<string | null> {
   const { data } = await supabase
     .from("matches")
-    .select("home_team_id, away_team_id, home_score, away_score, decided_winner_team_id, kickoff_at, stage:stages(sort_order)")
-    .eq("status", "finished");
+    .select(
+      "home_team_id, away_team_id, home_score, away_score, decided_winner_team_id, kickoff_at, status, stage:stages!inner(sort_order)",
+    )
+    .eq("stage.sort_order", 6);
 
-  const finals = (data ?? [])
-    .filter((m) => m.stage?.sort_order === 6)
-    .sort((a, b) => new Date(b.kickoff_at).getTime() - new Date(a.kickoff_at).getTime());
-  const f = finals[0];
-  if (!f) return null;
-  if (f.home_score == null || f.away_score == null) return f.decided_winner_team_id ?? null;
-  if (f.home_score > f.away_score) return f.home_team_id;
-  if (f.away_score > f.home_score) return f.away_team_id;
-  return f.decided_winner_team_id ?? null;
+  const matches: FinalMatch[] = (data ?? []).map((m) => ({
+    homeTeamId: m.home_team_id,
+    awayTeamId: m.away_team_id,
+    homeScore: m.home_score,
+    awayScore: m.away_score,
+    decidedWinnerTeamId: m.decided_winner_team_id,
+    kickoffAt: m.kickoff_at,
+    status: m.status,
+  }));
+  return championFromFinal(resolveFinalMatch(matches));
 }
 
 /**
