@@ -582,6 +582,15 @@ export type Database = {
         }[]
       }
       prediction_lock_interval: { Args: never; Returns: string }
+      standings_aggregate: {
+        Args: never
+        Returns: {
+          aciertos: number
+          plenos: number
+          points: number
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       daily_message_type:
