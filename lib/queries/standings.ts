@@ -16,19 +16,16 @@ function yesterdayInTz(now: Date = new Date()): string {
 /**
  * Tabla de posiciones del grupo (§5.6).
  * Suma points_earned de partidos finalizados; desempata por plenos.
- * RLS permite leer pronósticos ajenos de partidos ya visibles (finalizados).
+ * La agregación vive en la BD (RPC standings_aggregate): traer las
+ * predicciones fila por fila chocaba con el max-rows=1000 de PostgREST,
+ * que trunca en silencio y comía puntos.
  */
 export async function getStandings(
   supabase: SupabaseClient<Database>,
 ): Promise<StandingRow[]> {
-  const [{ data: profiles }, { data: preds }, { data: ySnaps }, actualChampion] = await Promise.all([
+  const [{ data: profiles }, { data: totals }, { data: ySnaps }, actualChampion] = await Promise.all([
     supabase.from("profiles").select("id, display_name, avatar_url, es_bot, champion_team_id"),
-    supabase
-      .from("predictions")
-      .select(
-        "user_id, points_earned, pred_home_score, pred_away_score, match:matches!inner(home_score, away_score, status)",
-      )
-      .eq("match.status", "finished"),
+    supabase.rpc("standings_aggregate"),
     supabase.from("standings_snapshots").select("user_id, posicion").eq("date", yesterdayInTz()),
     getActualChampion(supabase),
   ]);
@@ -50,20 +47,12 @@ export async function getStandings(
     });
   }
 
-  for (const row of preds ?? []) {
+  for (const row of totals ?? []) {
     const cur = agg.get(row.user_id);
     if (!cur) continue; // pronóstico sin perfil (no debería ocurrir)
-    const pts = row.points_earned ?? 0;
-    cur.points += pts;
-    if (pts > 0) cur.aciertos += 1;
-    const match = row.match;
-    if (
-      match &&
-      row.pred_home_score === match.home_score &&
-      row.pred_away_score === match.away_score
-    ) {
-      cur.plenos += 1;
-    }
+    cur.points += row.points;
+    cur.aciertos = row.aciertos;
+    cur.plenos = row.plenos;
   }
 
   return rankStandings([...agg.values()], posAyer);
