@@ -19,8 +19,9 @@ const PIECES = Array.from({ length: COUNT }, (_, i) => {
 /**
  * Papelitos cayendo. Las animaciones CSS arrancan al montar; al cambiar de tab
  * se remonta (key) y vuelven a caer. Decorativo: no captura clicks.
+ * `loop`: caen sin parar (guirnaldas de festejo) hasta desmontar.
  */
-export function Confetti() {
+export function Confetti({ loop = false }: { loop?: boolean }) {
   return (
     <div aria-hidden className="confetti-overlay pointer-events-none fixed inset-0 z-[60] overflow-hidden">
       {PIECES.map((p, i) => {
@@ -29,7 +30,7 @@ export function Confetti() {
           width: p.size,
           height: p.size,
           backgroundColor: p.color,
-          animation: `confetti-fall ${p.duration}s linear ${p.delay}s forwards`,
+          animation: `confetti-fall ${p.duration}s linear ${p.delay}s ${loop ? "infinite" : "forwards"}`,
         };
         return <span key={i} className="absolute -top-3 block" style={style} />;
       })}
