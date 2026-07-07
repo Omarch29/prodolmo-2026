@@ -47,3 +47,13 @@ export function rankStandings(
     return { ...r, rank, delta };
   });
 }
+
+/**
+ * Ganador(es) del prode: los no-bots con el mejor puesto entre no-bots.
+ * Más de uno solo si el empate persiste tras los desempates (co-campeones).
+ */
+export function pickWinners(rows: RankedStanding[]): RankedStanding[] {
+  const humans = rows.filter((r) => !r.esBot);
+  const best = humans.reduce((min, r) => Math.min(min, r.rank), Infinity);
+  return humans.filter((r) => r.rank === best);
+}
