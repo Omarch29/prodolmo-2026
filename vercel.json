@@ -1,12 +1,3 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/sync-fixtures",
-      "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/cron/daily-messages",
-      "schedule": "0 9 * * *"
-    }
-  ]
+  "crons": []
 }
